@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome 圖示庫 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- React & ReactDOM (Development version for standalone Babel rendering) -->
+  <!-- React & ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <!-- Babel Compiler -->
@@ -19,6 +19,21 @@
 
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
+
+    // 安全 Fetch 封裝：當單一 JSON 讀取失敗時，紀錄 Warning 並回傳 null，避免阻塞系統
+    const fetchJsonSafe = async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn(`[Data Fetch] 檔案讀取失敗 (${res.status}): ${url}`);
+          return null;
+        }
+        return await res.json();
+      } catch (err) {
+        console.warn(`[Data Fetch] 網路或解析錯誤: ${url}`, err);
+        return null;
+      }
+    };
 
     function App() {
       const [loading, setLoading] = useState(true);
@@ -35,68 +50,61 @@
       const [searchQuery, setSearchQuery] = useState("");
       const [selectedKanji, setSelectedKanji] = useState(null);
 
-      // 非同步讀取 4 個 JSON 資料庫
+      // 非同步平行載入 data/*.json
       const loadAllData = async () => {
         setLoading(true);
         setDataError(null);
-        try {
-          const [wordsRes, glossaryRes, kanaRes, kanjiRes] = await Promise.all([
-            fetch("./data/words.json"),
-            fetch("./data/glossary.json"),
-            fetch("./data/kana.json"),
-            fetch("./data/kanji.json")
-          ]);
 
-          if (!wordsRes.ok || !glossaryRes.ok || !kanaRes.ok || !kanjiRes.ok) {
-            throw new Error("部分資料檔案讀取失敗，請檢查 ./data/ 目錄下的 JSON 檔案。");
-          }
+        const [words, glossary, kana, kanji] = await Promise.all([
+          fetchJsonSafe("./data/words.json"),
+          fetchJsonSafe("./data/glossary.json"),
+          fetchJsonSafe("./data/kana.json"),
+          fetchJsonSafe("./data/kanji.json")
+        ]);
 
-          const [words, glossary, kana, kanji] = await Promise.all([
-            wordsRes.json(),
-            glossaryRes.json(),
-            kanaRes.json(),
-            kanjiRes.json()
-          ]);
-
-          setWordsData(words);
-          setGlossaryData(glossary);
-          setKanaData(kana);
-          setKanjiData(kanji);
-        } catch (err) {
-          console.error("Data fetch error:", err);
-          setDataError(err.message || "載入資料時發生未知錯誤");
-        } finally {
+        // 只有當所有基礎檔案都無法獲取時，才判定為重大載入失敗
+        if (!words && !kana && !kanji) {
+          setDataError("無法讀取 ./data/ 目錄下的 JSON 檔案。請確認 Workers 靜態資源配置或檔案路徑。");
           setLoading(false);
+          return;
         }
+
+        // 容錯寫入：若特定 JSON 尚未發布，自動以空陣列/物件替代
+        setWordsData(words || []);
+        setGlossaryData(glossary || []);
+        setKanaData(kana);
+        setKanjiData(kanji || []);
+
+        setLoading(false);
       };
 
       useEffect(() => {
         loadAllData();
       }, []);
 
-      // 漢字篩選邏輯
+      // 漢字搜尋過濾邏輯
       const filteredKanji = useMemo(() => {
         if (!searchQuery.trim()) return kanjiData;
         const q = searchQuery.toLowerCase().trim();
         return kanjiData.filter(item => 
-          item.kanji.includes(q) ||
-          item.meaning.includes(q) ||
-          item.onyomi.some(o => o.includes(q)) ||
-          item.kunyomi.some(k => k.includes(q))
+          (item.kanji && item.kanji.includes(q)) ||
+          (item.meaning && item.meaning.includes(q)) ||
+          (item.onyomi && item.onyomi.some(o => o.includes(q))) ||
+          (item.kunyomi && item.kunyomi.some(k => k.includes(q)))
         );
       }, [kanjiData, searchQuery]);
 
-      // 載入中狀態顯示
+      // 載入中動畫
       if (loading) {
         return (
           <div class="flex flex-col items-center justify-center min-h-screen">
-            <i class="fa-solid me-2 fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
-            <p class="text-slate-600 font-medium">正在載入日語 N5 學習資料庫 (Words, Kana, Glossary, Kanji)...</p>
+            <i class="fa-solid fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
+            <p class="text-slate-600 font-medium">正在載入日語 N5 學習資料庫...</p>
           </div>
         );
       }
 
-      // 錯誤狀態顯示
+      // 重大錯誤提示（僅在完全讀不到資料時觸發）
       if (dataError) {
         return (
           <div class="flex flex-col items-center justify-center min-h-screen p-4">
@@ -107,7 +115,7 @@
               </div>
               <p class="text-sm text-red-600 mb-4">{dataError}</p>
               <p class="text-xs text-slate-500 mb-4">
-                提示：請確認專案根目錄下設有 <code>./data/</code> 資料夾，並包含以下檔案：
+                請確認 Cloudflare Worker / Pages 專案的 <code>./data/</code> 目錄下包含：
                 <br />• words.json <br />• glossary.json <br />• kana.json <br />• kanji.json
               </p>
               <button 
@@ -123,17 +131,16 @@
 
       return (
         <div class="max-w-6xl mx-auto px-4 py-8">
-          {/* Header */}
+          {/* Header 頂部導覽 */}
           <header class="mb-8 border-b pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 <i class="fa-solid fa-torii-gate text-indigo-600"></i>
                 N5 日語自主學習系統
               </h1>
-              <p class="text-slate-500 text-sm mt-1">整合 漢字、詞彙、五十音與文法例句庫</p>
+              <p class="text-slate-500 text-sm mt-1">獨立字庫與模組化獨立架構</p>
             </div>
 
-            {/* 導覽頁籤 */}
             <nav class="flex gap-2 bg-slate-200/60 p-1.5 rounded-xl self-start md:self-auto">
               <button
                 onClick={() => setActiveTab("kanji")}
@@ -168,10 +175,9 @@
             </nav>
           </header>
 
-          {/* TAB 1: 漢字學習庫 */}
+          {/* TAB 1: 漢字庫 */}
           {activeTab === "kanji" && (
             <section class="space-y-6">
-              {/* 搜尋欄 */}
               <div class="relative max-w-md">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input
@@ -183,7 +189,6 @@
                 />
               </div>
 
-              {/* 漢字網格卡片 */}
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredKanji.map((item) => (
                   <div
@@ -204,13 +209,13 @@
                         <div class="flex items-center gap-2">
                           <span class="text-slate-400 font-medium w-10">音讀</span>
                           <span class="text-slate-700 font-mono bg-slate-50 px-1.5 py-0.5 rounded">
-                            {item.onyomi.length > 0 ? item.onyomi.join("、") : "—"}
+                            {item.onyomi && item.onyomi.length > 0 ? item.onyomi.join("、") : "—"}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <span class="text-slate-400 font-medium w-10">訓讀</span>
                           <span class="text-slate-700 font-mono bg-slate-50 px-1.5 py-0.5 rounded">
-                            {item.kunyomi.length > 0 ? item.kunyomi.join("、") : "—"}
+                            {item.kunyomi && item.kunyomi.length > 0 ? item.kunyomi.join("、") : "—"}
                           </span>
                         </div>
                       </div>
@@ -225,38 +230,42 @@
               </div>
 
               {filteredKanji.length === 0 && (
-                <div class="text-center py-12 text-slate-400">
-                  <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-                  <p>未找到符合條件的漢字</p>
+                <div class="text-center py-12 text-slate-400 bg-white rounded-xl border border-dashed">
+                  <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+                  <p>{kanjiData.length === 0 ? "尚未讀取到 kanji.json 資料，請確認部署狀態。" : "未找到符合條件的漢字"}</p>
                 </div>
               )}
             </section>
           )}
 
-          {/* TAB 2: 單字總覽 */}
+          {/* TAB 2: 核心單字 */}
           {activeTab === "words" && (
             <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <h2 class="text-lg font-bold text-slate-800 mb-4">N5 核心單字對照表</h2>
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-semibold">
-                      <th class="p-3">單字 (漢字)</th>
-                      <th class="p-3">假名標記</th>
-                      <th class="p-3">中文釋義</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    {wordsData.map((w, index) => (
-                      <tr key={index} class="hover:bg-slate-50/80 transition">
-                        <td class="p-3 font-medium text-slate-800 text-base">{w.kanji || w.word}</td>
-                        <td class="p-3 text-indigo-600 font-mono">{w.kana || w.reading}</td>
-                        <td class="p-3 text-slate-600">{w.meaning || w.translation}</td>
+              <h2 class="text-lg font-bold text-slate-800 mb-4">N5 核心單字列表</h2>
+              {wordsData.length > 0 ? (
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-semibold">
+                        <th class="p-3">單字 (漢字)</th>
+                        <th class="p-3">假名標記</th>
+                        <th class="p-3">中文釋義</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      {wordsData.map((w, index) => (
+                        <tr key={index} class="hover:bg-slate-50/80 transition">
+                          <td class="p-3 font-medium text-slate-800 text-base">{w.kanji || w.word}</td>
+                          <td class="p-3 text-indigo-600 font-mono">{w.kana || w.reading}</td>
+                          <td class="p-3 text-slate-600">{w.meaning || w.translation}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p class="text-slate-500 text-sm">未讀取到 words.json 資料。</p>
+              )}
             </section>
           )}
 
@@ -274,12 +283,12 @@
                   ))}
                 </div>
               ) : (
-                <p class="text-slate-500 text-sm">五十音資料無法載入或格式不符合。</p>
+                <p class="text-slate-500 text-sm">未讀取到 kana.json 資料。</p>
               )}
             </section>
           )}
 
-          {/* 漢字詳細資訊彈窗 (Modal) */}
+          {/* 漢字詳情彈窗 */}
           {selectedKanji && (
             <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
               <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
@@ -307,17 +316,21 @@
                   <div>
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">音讀 (Onyomi)</span>
                     <div class="flex flex-wrap gap-1.5">
-                      {selectedKanji.onyomi.map(o => (
-                        <span key={o} class="bg-indigo-600 text-white text-xs font-mono px-2 py-0.5 rounded">{o}</span>
-                      ))}
+                      {selectedKanji.onyomi && selectedKanji.onyomi.length > 0 ? (
+                        selectedKanji.onyomi.map(o => (
+                          <span key={o} class="bg-indigo-600 text-white text-xs font-mono px-2 py-0.5 rounded">{o}</span>
+                        ))
+                      ) : <span class="text-xs text-slate-400">—</span>}
                     </div>
                   </div>
                   <div class="pt-2 border-t border-slate-200/60">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">訓讀 (Kunyomi)</span>
                     <div class="flex flex-wrap gap-1.5">
-                      {selectedKanji.kunyomi.map(k => (
-                        <span key={k} class="bg-emerald-600 text-white text-xs font-mono px-2 py-0.5 rounded">{k}</span>
-                      ))}
+                      {selectedKanji.kunyomi && selectedKanji.kunyomi.length > 0 ? (
+                        selectedKanji.kunyomi.map(k => (
+                          <span key={k} class="bg-emerald-600 text-white text-xs font-mono px-2 py-0.5 rounded">{k}</span>
+                        ))
+                      ) : <span class="text-xs text-slate-400">—</span>}
                     </div>
                   </div>
                 </div>
