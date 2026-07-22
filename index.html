@@ -1,1753 +1,348 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-<title>言の道 Kotoba-dō｜每日日語單字修行</title>
-<meta name="description" content="每日日語 N5 單字練習、五十音測驗、文法測驗，含間隔重複複習系統" />
-<link rel="icon" href="data:," />
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<style>
-  html, body { margin: 0; padding: 0; background: #F5F0E6; }
-  #root { min-height: 100vh; }
-  #boot-error { display:none; font-family: sans-serif; padding: 24px; color: #BC4A3C; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
-  #boot-status { font-family: sans-serif; padding: 24px; color: #1F3A5F99; text-align: center; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>N5 日語自主學習系統</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 圖示庫 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- React & ReactDOM (Development version for standalone Babel rendering) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel Compiler -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-<div id="boot-status">載入中…</div>
-<div id="root"></div>
-<div id="boot-error"></div>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+  <div id="root"></div>
 
-<!-- Raw JSX source, kept inert as a non-executing script (raw-text element, no HTML entity
-     decoding applied) so the browser never tries to auto-run or auto-inject it. We compile
-     and execute it ourselves below, which avoids a known Babel-Standalone crash on some
-     mobile browsers where its own automatic <script type="text/babel"> DOM injection fails
-     with "Cannot read properties of null (reading 'appendChild')".
-     Note: this app fetches its vocabulary/kana/grammar data from ./data/*.json at startup,
-     so it must be served over http(s) (e.g. Netlify) — opening this file directly via
-     file:// will fail the fetch() calls due to browser CORS rules for local files. -->
-<script type="text/plain" id="app-source">
-const { useState, useEffect, useMemo, useCallback } = React;
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
 
+    function App() {
+      const [loading, setLoading] = useState(true);
+      const [dataError, setDataError] = useState(null);
 
-/* =========================================================================
-   言の道 (Kotoba-dō) — 每日日語單字修行
-   單檔 React 元件。使用 window.storage 做個人化持久化（每位使用者獨立）。
-   單字／假名／文法資料庫從 ./data/*.json 於啟動時非同步載入，不寫死在程式碼
-   裡；日後擴充字庫只需要編輯/新增 JSON 檔，不需要碰這份程式邏輯。
-   ========================================================================= */
+      // 4 大資料集 State
+      const [wordsData, setWordsData] = useState([]);
+      const [glossaryData, setGlossaryData] = useState([]);
+      const [kanaData, setKanaData] = useState(null);
+      const [kanjiData, setKanjiData] = useState([]);
 
-const CATEGORIES = [
-  { id: "人物", label: "人物與稱謂" },
-  { id: "時間", label: "時間" },
-  { id: "食", label: "食（飲食）" },
-  { id: "住", label: "住（居住・場所）" },
-  { id: "行", label: "行（交通・旅行）" },
-  { id: "學校", label: "學校" },
-  { id: "運動", label: "運動" },
-  { id: "自然", label: "自然" },
-  { id: "顏色", label: "顏色" },
-  { id: "形容詞", label: "形容詞與感受" },
-  { id: "動詞", label: "動詞" },
-  { id: "招呼語", label: "招呼語與慣用句" },
-  { id: "其他", label: "數字・副詞・其他" },
-];
+      // UI 介面 State
+      const [activeTab, setActiveTab] = useState("kanji"); // 'kanji' | 'words' | 'kana'
+      const [searchQuery, setSearchQuery] = useState("");
+      const [selectedKanji, setSelectedKanji] = useState(null);
 
-let WORDS = [];        // 由 loadAppData() 於啟動時非同步填入（見 App 元件）
-let DICTIONARY = [];   // 例句中額外詞彙自動註解用的字典，隨 WORDS 一起建立
+      // 非同步讀取 4 個 JSON 資料庫
+      const loadAllData = async () => {
+        setLoading(true);
+        setDataError(null);
+        try {
+          const [wordsRes, glossaryRes, kanaRes, kanjiRes] = await Promise.all([
+            fetch("./data/words.json"),
+            fetch("./data/glossary.json"),
+            fetch("./data/kana.json"),
+            fetch("./data/kanji.json")
+          ]);
 
-function glossExample(jpText, ownKanji, ownKana) {
-  const found = [];
-  const seen = new Set([ownKanji, ownKana]);
-  let i = 0;
-  while (i < jpText.length) {
-    let matched = null;
-    for (const entry of DICTIONARY) {
-      if (entry.key.length === 0) continue;
-      if (jpText.startsWith(entry.key, i)) { matched = entry; break; }
-    }
-    if (matched) {
-      if (!seen.has(matched.key)) {
-        seen.add(matched.key);
-        found.push(matched);
-      }
-      i += matched.key.length;
-    } else {
-      i += 1;
-    }
-  }
-  return found;
-}
+          if (!wordsRes.ok || !glossaryRes.ok || !kanaRes.ok || !kanjiRes.ok) {
+            throw new Error("部分資料檔案讀取失敗，請檢查 ./data/ 目錄下的 JSON 檔案。");
+          }
 
-function buildWordsData(wordsJson, glossaryJson) {
-  WORDS = wordsJson.map((w, i) => ({
-    id: "w" + i,
-    kanji: w.kanji, kana: w.kana, romaji: w.romaji, meaning: w.meaning, pos: w.pos, category: w.category,
-    examples: w.examples.map(ex => ({ jp: ex.jp, reading: ex.reading, zh: ex.zh })),
-  }));
+          const [words, glossary, kana, kanji] = await Promise.all([
+            wordsRes.json(),
+            glossaryRes.json(),
+            kanaRes.json(),
+            kanjiRes.json()
+          ]);
 
-  DICTIONARY = [
-    ...WORDS.map(w => ({ key: w.kanji, reading: w.kana, meaning: w.meaning })),
-    ...glossaryJson.map(g => ({ key: g.key, reading: g.reading, meaning: g.meaning })),
-  ].sort((a, b) => b.key.length - a.key.length);
-
-  WORDS.forEach(w => {
-    w.examples.forEach(ex => {
-      ex.gloss = glossExample(ex.jp, w.kanji, w.kana);
-    });
-  });
-}
-
-const DAY_MS = 86400000;
-const BOX_INTERVALS = [0, 1, 2, 4, 7, 15, 30]; // days until next review, indexed by box level
-const MISTAKE_CLEAR_STREAK = 3; // consecutive correct answers needed to clear a kana from the mistake list
-
-
-
-/* --------------------------- 五十音資料庫（動態載入） -------------------------------- */
-function mk(pairs) {
-  return pairs.map(p => ({ kana: p.kana, romaji: p.romaji }));
-}
-
-let KANA_CATEGORIES = [];
-let KANA_ALL = [];
-
-function buildKanaData(kanaJson) {
-  const hiraganaSeion = mk(kanaJson.hiraganaSeion);
-  const katakanaSeion = mk(kanaJson.katakanaSeion);
-  const hiraganaDakuon = mk(kanaJson.hiraganaDakuon);
-  const katakanaDakuon = mk(kanaJson.katakanaDakuon);
-  const hiraganaYouon = mk(kanaJson.hiraganaYouon);
-  const katakanaYouon = mk(kanaJson.katakanaYouon);
-
-  KANA_CATEGORIES = [
-    { id: "hira-sei", label: "平假名・清音", short: "清音", script: "平假名", data: hiraganaSeion },
-    { id: "hira-daku", label: "平假名・濁音", short: "濁音", script: "平假名", data: hiraganaDakuon },
-    { id: "hira-you", label: "平假名・拗音", short: "拗音", script: "平假名", data: hiraganaYouon },
-    { id: "kata-sei", label: "片假名・清音", short: "清音", script: "片假名", data: katakanaSeion },
-    { id: "kata-daku", label: "片假名・濁音", short: "濁音", script: "片假名", data: katakanaDakuon },
-    { id: "kata-you", label: "片假名・拗音", short: "拗音", script: "片假名", data: katakanaYouon },
-  ];
-  KANA_ALL = KANA_CATEGORIES.reduce((acc, c) => acc.concat(c.data), []);
-}
-
-
-/* ------------------- 傳統五十音圖表資料（含平假名字源漢字） ------------------- */
-function gr(kana, kata, romaji, origin) { return { kana, kata, romaji, origin }; }
-function blank() { return { kana: "", kata: "", romaji: "", origin: "" }; }
-
-const GOJUON_ROWS = [
-  { label: "A行", subrows: [
-    { cells: [gr("あ","ア","a","安"), gr("い","イ","i","以"), gr("う","ウ","u","宇"), gr("え","エ","e","衣"), gr("お","オ","o","於")] },
-  ]},
-  { label: "K行", subrows: [
-    { cells: [gr("か","カ","ka","加"), gr("き","キ","ki","幾"), gr("く","ク","ku","久"), gr("け","ケ","ke","計"), gr("こ","コ","ko","己")],
-      youon: [gr("きゃ","キャ","kya",""), gr("きゅ","キュ","kyu",""), gr("きょ","キョ","kyo","")] },
-    { cells: [gr("が","ガ","ga",""), gr("ぎ","ギ","gi",""), gr("ぐ","グ","gu",""), gr("げ","ゲ","ge",""), gr("ご","ゴ","go","")],
-      youon: [gr("ぎゃ","ギャ","gya",""), gr("ぎゅ","ギュ","gyu",""), gr("ぎょ","ギョ","gyo","")] },
-  ]},
-  { label: "S行", subrows: [
-    { cells: [gr("さ","サ","sa","左"), gr("し","シ","shi","之"), gr("す","ス","su","寸"), gr("せ","セ","se","世"), gr("そ","ソ","so","曾")],
-      youon: [gr("しゃ","シャ","sha",""), gr("しゅ","シュ","shu",""), gr("しょ","ショ","sho","")] },
-    { cells: [gr("ざ","ザ","za",""), gr("じ","ジ","ji",""), gr("ず","ズ","zu",""), gr("ぜ","ゼ","ze",""), gr("ぞ","ゾ","zo","")],
-      youon: [gr("じゃ","ジャ","ja",""), gr("じゅ","ジュ","ju",""), gr("じょ","ジョ","jo","")] },
-  ]},
-  { label: "T行", subrows: [
-    { cells: [gr("た","タ","ta","太"), gr("ち","チ","chi","知"), gr("つ","ツ","tsu","川"), gr("て","テ","te","天"), gr("と","ト","to","止")],
-      youon: [gr("ちゃ","チャ","cha",""), gr("ちゅ","チュ","chu",""), gr("ちょ","チョ","cho","")] },
-    { cells: [gr("だ","ダ","da",""), gr("ぢ","ヂ","ji",""), gr("づ","ヅ","zu",""), gr("で","デ","de",""), gr("ど","ド","do","")],
-      youon: [gr("ぢゃ","ヂャ","ja",""), gr("ぢゅ","ヂュ","ju",""), gr("ぢょ","ヂョ","jo","")] },
-  ]},
-  { label: "N行", subrows: [
-    { cells: [gr("な","ナ","na","奈"), gr("に","ニ","ni","仁"), gr("ぬ","ヌ","nu","奴"), gr("ね","ネ","ne","祢"), gr("の","ノ","no","乃")],
-      youon: [gr("にゃ","ニャ","nya",""), gr("にゅ","ニュ","nyu",""), gr("にょ","ニョ","nyo","")] },
-  ]},
-  { label: "H行", subrows: [
-    { cells: [gr("は","ハ","ha","波"), gr("ひ","ヒ","hi","比"), gr("ふ","フ","fu","不"), gr("へ","ヘ","he","部"), gr("ほ","ホ","ho","保")],
-      youon: [gr("ひゃ","ヒャ","hya",""), gr("ひゅ","ヒュ","hyu",""), gr("ひょ","ヒョ","hyo","")] },
-    { cells: [gr("ば","バ","ba",""), gr("び","ビ","bi",""), gr("ぶ","ブ","bu",""), gr("べ","ベ","be",""), gr("ぼ","ボ","bo","")],
-      youon: [gr("びゃ","ビャ","bya",""), gr("びゅ","ビュ","byu",""), gr("びょ","ビョ","byo","")] },
-    { cells: [gr("ぱ","パ","pa",""), gr("ぴ","ピ","pi",""), gr("ぷ","プ","pu",""), gr("ぺ","ペ","pe",""), gr("ぽ","ポ","po","")],
-      youon: [gr("ぴゃ","ピャ","pya",""), gr("ぴゅ","ピュ","pyu",""), gr("ぴょ","ピョ","pyo","")] },
-  ]},
-  { label: "M行", subrows: [
-    { cells: [gr("ま","マ","ma","末"), gr("み","ミ","mi","美"), gr("む","ム","mu","武"), gr("め","メ","me","女"), gr("も","モ","mo","毛")],
-      youon: [gr("みゃ","ミャ","mya",""), gr("みゅ","ミュ","myu",""), gr("みょ","ミョ","myo","")] },
-  ]},
-  { label: "Y行", subrows: [
-    { cells: [gr("や","ヤ","ya","也"), blank(), gr("ゆ","ユ","yu","由"), blank(), gr("よ","ヨ","yo","与")] },
-  ]},
-  { label: "R行", subrows: [
-    { cells: [gr("ら","ラ","ra","良"), gr("り","リ","ri","利"), gr("る","ル","ru","留"), gr("れ","レ","re","礼"), gr("ろ","ロ","ro","呂")],
-      youon: [gr("りゃ","リャ","rya",""), gr("りゅ","リュ","ryu",""), gr("りょ","リョ","ryo","")] },
-  ]},
-  { label: "W行", subrows: [
-    { cells: [gr("わ","ワ","wa","和"), blank(), blank(), blank(), gr("を","ヲ","wo","遠")] },
-  ]},
-  { label: "N", subrows: [
-    { cells: [gr("ん","ン","n","无")], single: true },
-  ]},
-];
-
-function shuffleArr(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function buildKanaOptions(item, pool) {
-  const distinctOthers = [];
-  const seenRomaji = new Set([item.romaji]);
-  for (const p of shuffleArr(pool)) {
-    if (seenRomaji.has(p.romaji)) continue;
-    seenRomaji.add(p.romaji);
-    distinctOthers.push(p.romaji);
-    if (distinctOthers.length >= 3) break;
-  }
-  const options = shuffleArr([item.romaji, ...distinctOthers]);
-  return options;
-}
-
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-function daysBetween(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / DAY_MS);
-}
-
-/* ------------------------------- App ------------------------------------ */
-function App() {
-  const [ready, setReady] = useState(false);
-  const [cards, setCards] = useState({});          // id -> {box, due, seen, correctStreak}
-  const [streak, setStreak] = useState(0);
-  const [lastActiveDate, setLastActiveDate] = useState(null);
-  const [learnerEmail, setLearnerEmail] = useState("");
-  const [log, setLog] = useState({});              // date -> {learned, reviewed}
-  const [view, setView] = useState("dashboard");    // dashboard | session | stats | done
-  const [sessionQueue, setSessionQueue] = useState([]);
-  const [sessionIdx, setSessionIdx] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [sessionAnswers, setSessionAnswers] = useState([]); // parallel to sessionQueue: null | true | false
-  const [sessionStats, setSessionStats] = useState({ correct: 0, total: 0, newCount: 0 });
-  const [error, setError] = useState(null);
-  const [dataError, setDataError] = useState(null);
-
-  /* ---------- kana quiz state ---------- */
-  const [kanaCategory, setKanaCategory] = useState(null); // one of KANA_CATEGORIES or comprehensive marker
-  const [kanaQueue, setKanaQueue] = useState([]);
-  const [kanaPool, setKanaPool] = useState([]);
-  const [kanaIdx, setKanaIdx] = useState(0);
-  const [kanaOptionsArr, setKanaOptionsArr] = useState([]); // per-index cached options
-  const [kanaAnswersArr, setKanaAnswersArr] = useState([]); // per-index selected romaji or null
-  const [kanaScore, setKanaScore] = useState(0);
-  const [kanaWrong, setKanaWrong] = useState([]);
-  const [kanaStats, setKanaStats] = useState({}); // kana -> {romaji, attempts, correct, wrong}
-
-  /* ---------- load persisted state + app data (words/kana JSON) ---------- */
-  useEffect(() => {
-    (async () => {
-      // app data lives in separate JSON files (./data/*.json) instead of being
-      // baked into the compiled JS, so the app stays fast to compile/parse no
-      // matter how large the vocab database grows, and updating vocabulary is
-      // just a matter of editing/replacing a JSON file.
-      try {
-        const [wordsRes, glossaryRes, kanaRes] = await Promise.all([
-          fetch("./data/words.json"),
-          fetch("./data/glossary.json"),
-          fetch("./data/kana.json"),
-        ]);
-        if (!wordsRes.ok || !glossaryRes.ok || !kanaRes.ok) {
-          throw new Error("資料檔案下載失敗（HTTP 錯誤）");
+          setWordsData(words);
+          setGlossaryData(glossary);
+          setKanaData(kana);
+          setKanjiData(kanji);
+        } catch (err) {
+          console.error("Data fetch error:", err);
+          setDataError(err.message || "載入資料時發生未知錯誤");
+        } finally {
+          setLoading(false);
         }
-        const [wordsJson, glossaryJson, kanaJson] = await Promise.all([
-          wordsRes.json(), glossaryRes.json(), kanaRes.json(),
-        ]);
-        buildWordsData(wordsJson, glossaryJson);
-        buildKanaData(kanaJson);
-      } catch (e) {
-        setDataError(e && e.message ? e.message : String(e));
-        return; // don't flip to ready — show the data-error screen instead
-      }
+      };
 
-      try {
-        const [c, settings, l, ks] = await Promise.all([
-          safeGet("srs-cards"),
-          safeGet("settings"),
-          safeGet("daily-log"),
-          safeGet("kana-stats"),
-        ]);
-        if (c) setCards(JSON.parse(c.value));
-        if (settings) {
-          const s = JSON.parse(settings.value);
-          setStreak(s.streak ?? 0);
-          setLastActiveDate(s.lastActiveDate ?? null);
-          setLearnerEmail(s.learnerEmail ?? "");
-        }
-        if (l) setLog(JSON.parse(l.value));
-        if (ks) setKanaStats(JSON.parse(ks.value));
-      } catch (e) {
-        // no prior data — fresh start
-      } finally {
-        setReady(true);
-      }
-    })();
-  }, []);
+      useEffect(() => {
+        loadAllData();
+      }, []);
 
-  async function safeGet(key) {
-    try { return await window.storage.get(key, false); } catch { return null; }
-  }
-  async function persistCards(next) {
-    setCards(next);
-    try { await window.storage.set("srs-cards", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
-  }
-  async function persistSettings(next) {
-    try { await window.storage.set("settings", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
-  }
-  async function persistLog(next) {
-    setLog(next);
-    try { await window.storage.set("daily-log", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
-  }
-  async function persistKanaStats(next) {
-    setKanaStats(next);
-    try { await window.storage.set("kana-stats", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
-  }
-  async function saveLearnerEmail(email) {
-    setLearnerEmail(email);
-    await persistSettings({ streak, lastActiveDate, learnerEmail: email });
-  }
+      // 漢字篩選邏輯
+      const filteredKanji = useMemo(() => {
+        if (!searchQuery.trim()) return kanjiData;
+        const q = searchQuery.toLowerCase().trim();
+        return kanjiData.filter(item => 
+          item.kanji.includes(q) ||
+          item.meaning.includes(q) ||
+          item.onyomi.some(o => o.includes(q)) ||
+          item.kunyomi.some(k => k.includes(q))
+        );
+      }, [kanjiData, searchQuery]);
 
-
-  /* ---------- derived: learning progress ---------- */
-  const today = todayStr();
-  const masteredCount = useMemo(() => Object.values(cards).filter(c => c.box >= 6).length, [cards]);
-  const learnedCount = Object.keys(cards).length;
-
-  /* ---------- derived: kana mistakes + per-category overview ---------- */
-  const kanaMistakeItems = useMemo(() => {
-    return Object.entries(kanaStats)
-      .filter(([, s]) => s.wrong > 0 && (s.streak || 0) < MISTAKE_CLEAR_STREAK)
-      .sort((a, b) => b[1].wrong - a[1].wrong)
-      .map(([kana, s]) => ({ kana, romaji: s.romaji, wrong: s.wrong, attempts: s.attempts, streak: s.streak || 0 }));
-  }, [kanaStats]);
-
-  const vocabWeak = useMemo(() => {
-    return WORDS
-      .filter(w => cards[w.id] && !cards[w.id].mastered)
-      .sort((a, b) => (cards[a.id].box) - (cards[b.id].box))
-      .map(w => ({ ...w, box: cards[w.id].box }));
-  }, [cards]);
-
-  const kanaAccuracy = useMemo(() => {
-    const totals = Object.values(kanaStats).reduce((acc, s) => ({
-      attempts: acc.attempts + s.attempts, correct: acc.correct + s.correct,
-    }), { attempts: 0, correct: 0 });
-    return totals.attempts > 0 ? Math.round((totals.correct / totals.attempts) * 100) : null;
-  }, [kanaStats]);
-
-  const kanaOverview = useMemo(() => {
-    const perCategory = KANA_CATEGORIES.map(c => {
-      let attempts = 0, correct = 0, wrong = 0, touched = 0;
-      c.data.forEach(item => {
-        const s = kanaStats[item.kana];
-        if (s) {
-          touched += 1;
-          attempts += s.attempts;
-          correct += s.correct;
-          wrong += s.wrong;
-        }
-      });
-      return { ...c, touched, total: c.data.length, attempts, correct, wrong };
-    });
-    const totals = perCategory.reduce((acc, c) => ({
-      touched: acc.touched + c.touched,
-      total: acc.total + c.total,
-      attempts: acc.attempts + c.attempts,
-      correct: acc.correct + c.correct,
-      wrong: acc.wrong + c.wrong,
-    }), { touched: 0, total: 0, attempts: 0, correct: 0, wrong: 0 });
-    return { perCategory, totals };
-  }, [kanaStats]);
-
-  function startCategorySession(categoryId) {
-    const catWords = WORDS.filter(w => w.category === categoryId);
-    const due = catWords.filter(w => {
-      const c = cards[w.id];
-      return c && !c.mastered && c.due <= today;
-    });
-    const newOnes = catWords.filter(w => !cards[w.id]);
-    const q = [...due, ...newOnes];
-    if (q.length === 0) return;
-    setSessionQueue(q);
-    setSessionIdx(0);
-    setFlipped(false);
-    setSessionAnswers(new Array(q.length).fill(null));
-    setSessionStats({ correct: 0, total: 0, newCount: 0 });
-    setView("session");
-  }
-
-  async function answerCard(known) {
-    if (sessionAnswers[sessionIdx] !== null && sessionAnswers[sessionIdx] !== undefined) return; // already graded, don't re-grade
-    const word = sessionQueue[sessionIdx];
-    const prev = cards[word.id];
-    const isNew = !prev;
-    let box = prev ? prev.box : 0;
-    box = known ? Math.min(box + 1, 6) : Math.max(box - 1, 1);
-    const due = new Date(Date.now() + BOX_INTERVALS[box] * DAY_MS);
-    const nextCards = {
-      ...cards,
-      [word.id]: {
-        box,
-        due: due.getFullYear() + "-" + String(due.getMonth() + 1).padStart(2, "0") + "-" + String(due.getDate()).padStart(2, "0"),
-        lastReview: today,
-        mastered: box >= 6,
-      },
-    };
-    await persistCards(nextCards);
-
-    const nextLog = { ...log };
-    const entry = nextLog[today] || { learned: 0, reviewed: 0 };
-    if (isNew) entry.learned += 1; else entry.reviewed += 1;
-    nextLog[today] = entry;
-    await persistLog(nextLog);
-
-    setSessionStats(s => ({
-      correct: s.correct + (known ? 1 : 0),
-      total: s.total + 1,
-      newCount: s.newCount + (isNew ? 1 : 0),
-    }));
-
-    setSessionAnswers(arr => {
-      const next = arr.slice();
-      next[sessionIdx] = known;
-      return next;
-    });
-
-    // count today as "active" for the streak as soon as at least one card is graded,
-    // so progress isn't lost if the person exits before finishing the whole session.
-    if (lastActiveDate !== today) {
-      const newStreak = lastActiveDate === yesterdayStr() ? streak + 1 : 1;
-      setStreak(newStreak);
-      setLastActiveDate(today);
-      await persistSettings({ streak: newStreak, lastActiveDate: today, learnerEmail });
-    }
-  }
-
-  function prevCard() {
-    if (sessionIdx === 0) return;
-    const newIdx = sessionIdx - 1;
-    setSessionIdx(newIdx);
-    setFlipped(sessionAnswers[newIdx] !== null && sessionAnswers[newIdx] !== undefined);
-  }
-
-  function advanceSession() {
-    if (sessionIdx + 1 >= sessionQueue.length) {
-      setView("done");
-    } else {
-      const newIdx = sessionIdx + 1;
-      setSessionIdx(newIdx);
-      setFlipped(sessionAnswers[newIdx] !== null && sessionAnswers[newIdx] !== undefined);
-    }
-  }
-
-  function endSession() {
-    // exits early; anything already graded is already persisted, so nothing is lost
-    setView("dashboard");
-  }
-
-  function yesterdayStr() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-
-
-  /* ---------- kana quiz handlers ---------- */
-  function startKanaQuiz(category, distractorPool) {
-    const pool = distractorPool || category.data;
-    const queue = shuffleArr(category.data);
-    setKanaCategory(category);
-    setKanaPool(pool);
-    setKanaQueue(queue);
-    setKanaIdx(0);
-    const opts = new Array(queue.length).fill(null);
-    opts[0] = buildKanaOptions(queue[0], pool);
-    setKanaOptionsArr(opts);
-    setKanaAnswersArr(new Array(queue.length).fill(null));
-    setKanaScore(0);
-    setKanaWrong([]);
-    setView("kana-quiz");
-  }
-
-  function startMistakeQuiz() {
-    if (kanaMistakeItems.length === 0) return;
-    startKanaQuiz(
-      { id: "mistakes", label: "常錯字練習", short: "常錯字", script: "錯題本", data: kanaMistakeItems },
-      KANA_ALL
-    );
-  }
-
-  function answerKana(choice) {
-    if (kanaAnswersArr[kanaIdx] !== null && kanaAnswersArr[kanaIdx] !== undefined) return; // already answered
-    const current = kanaQueue[kanaIdx];
-    const correct = choice === current.romaji;
-    setKanaAnswersArr(arr => {
-      const next = arr.slice();
-      next[kanaIdx] = choice;
-      return next;
-    });
-    if (correct) {
-      setKanaScore(s => s + 1);
-    } else {
-      setKanaWrong(w => [...w, current]);
-    }
-
-    const prevStat = kanaStats[current.kana] || { romaji: current.romaji, attempts: 0, correct: 0, wrong: 0, streak: 0 };
-    const nextStats = {
-      ...kanaStats,
-      [current.kana]: {
-        romaji: current.romaji,
-        attempts: prevStat.attempts + 1,
-        correct: prevStat.correct + (correct ? 1 : 0),
-        wrong: prevStat.wrong + (correct ? 0 : 1),
-        // consecutive correct answers since the last mistake; 3 in a row clears it from
-        // the "常錯字" list, a fresh mistake resets the streak and re-flags it
-        streak: correct ? (prevStat.streak || 0) + 1 : 0,
-      },
-    };
-    persistKanaStats(nextStats);
-  }
-
-  function goToKana(newIdx) {
-    setKanaOptionsArr(arr => {
-      if (arr[newIdx]) return arr;
-      const next = arr.slice();
-      next[newIdx] = buildKanaOptions(kanaQueue[newIdx], kanaPool);
-      return next;
-    });
-    setKanaIdx(newIdx);
-  }
-
-  function prevKana() {
-    if (kanaIdx === 0) return;
-    goToKana(kanaIdx - 1);
-  }
-
-  function nextKana() {
-    const nextIdx = kanaIdx + 1;
-    if (nextIdx >= kanaQueue.length) {
-      setView("kana-result");
-      return;
-    }
-    goToKana(nextIdx);
-  }
-
-  function endKanaQuiz() {
-    // shows results for whatever was answered so far, rest is simply dropped
-    setView("kana-result");
-  }
-
-  if (dataError) {
-    return (
-      <div style={styles.loadingScreen}>
-        <FontLoader />
-        <div style={{ ...styles.seal, borderColor: "#BC4A3C", color: "#BC4A3C" }}>！</div>
-        <p style={{ fontFamily: "'Noto Sans TC', sans-serif", color: "#F5F0E6", marginTop: 16, letterSpacing: 1, textAlign: "center", padding: "0 24px" }}>
-          單字資料載入失敗，請確認 <code>data</code> 資料夾（words.json／glossary.json／kana.json）
-          有跟 index.html 一起部署在同一層。
-        </p>
-        <p style={{ fontFamily: "monospace", color: "#F5F0E699", marginTop: 8, fontSize: 12, textAlign: "center", padding: "0 24px" }}>
-          {dataError}
-        </p>
-      </div>
-    );
-  }
-
-  if (!ready) {
-    return (
-      <div style={styles.loadingScreen}>
-        <FontLoader />
-        <div style={styles.seal}>言</div>
-        <p style={{ fontFamily: "'Noto Sans TC', sans-serif", color: "#F5F0E6", marginTop: 16, letterSpacing: 1 }}>載入中…</p>
-      </div>
-    );
-  }
-
-  return (
-    <div style={styles.app}>
-      <FontLoader />
-      <Header streak={streak} view={view} setView={setView} />
-      {error && <div style={styles.errorBanner}>{error}</div>}
-      <main style={styles.main} className="km-main">
-        {view === "dashboard" && (
-          <Dashboard
-            learnedCount={learnedCount}
-            masteredCount={masteredCount}
-            totalWords={WORDS.length}
-            onPracticeCategory={startCategorySession}
-            streak={streak}
-            cards={cards}
-          />
-        )}
-        {view === "session" && sessionQueue[sessionIdx] && (
-          <SessionView
-            word={sessionQueue[sessionIdx]}
-            index={sessionIdx}
-            total={sessionQueue.length}
-            flipped={flipped}
-            setFlipped={setFlipped}
-            onAnswer={answerCard}
-            isNew={!cards[sessionQueue[sessionIdx].id]}
-            answerChoice={sessionAnswers[sessionIdx]}
-            onPrev={prevCard}
-            onNext={advanceSession}
-            canGoPrev={sessionIdx > 0}
-            onQuit={endSession}
-          />
-        )}
-        {view === "done" && (
-          <DoneView stats={sessionStats} streak={streak} onBack={() => setView("dashboard")} />
-        )}
-        {view === "stats" && (
-          <StatsView
-            log={log}
-            learnedCount={learnedCount}
-            masteredCount={masteredCount}
-            totalWords={WORDS.length}
-            streak={streak}
-            learnerEmail={learnerEmail}
-            onSaveEmail={saveLearnerEmail}
-            vocabWeak={vocabWeak}
-            kanaMistakeItems={kanaMistakeItems}
-            kanaAccuracy={kanaAccuracy}
-          />
-        )}
-        {view === "kana-menu" && (
-          <KanaMenu
-            onStart={c => startKanaQuiz(c)}
-            onOverview={() => setView("kana-overview")}
-            onMistakes={startMistakeQuiz}
-            mistakeCount={kanaMistakeItems.length}
-          />
-        )}
-        {view === "kana-overview" && (
-          <KanaOverviewView overview={kanaOverview} kanaStats={kanaStats} onBack={() => setView("kana-menu")} />
-        )}
-        {view === "kana-quiz" && kanaQueue[kanaIdx] && (
-          <KanaQuizView
-            category={kanaCategory}
-            item={kanaQueue[kanaIdx]}
-            index={kanaIdx}
-            total={kanaQueue.length}
-            options={kanaOptionsArr[kanaIdx] || []}
-            selected={kanaAnswersArr[kanaIdx]}
-            score={kanaScore}
-            onAnswer={answerKana}
-            onNext={nextKana}
-            onPrev={prevKana}
-            canGoPrev={kanaIdx > 0}
-            onQuit={endKanaQuiz}
-          />
-        )}
-        {view === "kana-result" && (
-          <KanaResultView
-            category={kanaCategory}
-            score={kanaScore}
-            total={kanaAnswersArr.filter(a => a !== null && a !== undefined).length}
-            wrong={kanaWrong}
-            onRetry={() => startKanaQuiz(kanaCategory, kanaCategory.id === "mistakes" ? KANA_ALL : undefined)}
-            onBack={() => setView("kana-menu")}
-          />
-        )}
-      </main>
-    </div>
-  );
-}
-
-/* ---------------------------- subcomponents ------------------------------ */
-
-function Header({ streak, view, setView }) {
-  return (
-    <header style={styles.header}>
-      <div style={styles.headerInner} className="km-main">
-        <div style={styles.headerTopRow}>
-          <div>
-            <div style={styles.brandKanji}>言の道</div>
-            <div style={styles.brandSub}>KOTOBA-DŌ · 每日單字修行</div>
+      // 載入中狀態顯示
+      if (loading) {
+        return (
+          <div class="flex flex-col items-center justify-center min-h-screen">
+            <i class="fa-solid me-2 fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
+            <p class="text-slate-600 font-medium">正在載入日語 N5 學習資料庫 (Words, Kana, Glossary, Kanji)...</p>
           </div>
-          <div style={styles.streakBadge} title="連續天數">
-            <span style={{ fontSize: 16 }}>🔥</span>
-            <span>{streak}</span>
+        );
+      }
+
+      // 錯誤狀態顯示
+      if (dataError) {
+        return (
+          <div class="flex flex-col items-center justify-center min-h-screen p-4">
+            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r shadow-md max-w-lg w-full">
+              <div class="flex items-center mb-3 text-red-700 font-bold text-lg">
+                <i class="fa-solid fa-triangle-exclamation text-xl me-2"></i>
+                資料讀取錯誤
+              </div>
+              <p class="text-sm text-red-600 mb-4">{dataError}</p>
+              <p class="text-xs text-slate-500 mb-4">
+                提示：請確認專案根目錄下設有 <code>./data/</code> 資料夾，並包含以下檔案：
+                <br />• words.json <br />• glossary.json <br />• kana.json <br />• kanji.json
+              </p>
+              <button 
+                onClick={loadAllData}
+                class="w-full py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition"
+              >
+                重新載入
+              </button>
+            </div>
           </div>
-        </div>
-        <nav style={styles.nav}>
-          <button style={navBtn(view === "dashboard")} onClick={() => setView("dashboard")}>今日</button>
-          <button style={navBtn(view.startsWith("kana"))} onClick={() => setView("kana-menu")}>50音</button>
-          <button style={navBtn(view === "stats")} onClick={() => setView("stats")}>紀錄</button>
-        </nav>
-      </div>
-    </header>
-  );
-}
+        );
+      }
 
-function navBtn(active) {
-  return {
-    background: active ? "#BC4A3C" : "transparent",
-    color: active ? "#F5F0E6" : "#F5F0E6CC",
-    border: active ? "none" : "1px solid #F5F0E655",
-    borderRadius: 999,
-    padding: "8px 13px",
-    fontFamily: "'Noto Sans TC', sans-serif",
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: "pointer",
-    letterSpacing: 0.5,
-    whiteSpace: "nowrap",
-  };
-}
+      return (
+        <div class="max-w-6xl mx-auto px-4 py-8">
+          {/* Header */}
+          <header class="mb-8 border-b pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-torii-gate text-indigo-600"></i>
+                N5 日語自主學習系統
+              </h1>
+              <p class="text-slate-500 text-sm mt-1">整合 漢字、詞彙、五十音與文法例句庫</p>
+            </div>
 
-function Dashboard({ learnedCount, masteredCount, totalWords, onPracticeCategory, streak, cards }) {
-  const progressPct = Math.min(100, Math.round((masteredCount / totalWords) * 100));
-  const [expanded, setExpanded] = useState(null);
+            {/* 導覽頁籤 */}
+            <nav class="flex gap-2 bg-slate-200/60 p-1.5 rounded-xl self-start md:self-auto">
+              <button
+                onClick={() => setActiveTab("kanji")}
+                class={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                  activeTab === "kanji"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <i class="fa-solid fa-font me-1.5"></i>漢字庫 ({kanjiData.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("words")}
+                class={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                  activeTab === "words"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <i class="fa-solid fa-book-bookmark me-1.5"></i>核心單字 ({wordsData.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("kana")}
+                class={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                  activeTab === "kana"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <i class="fa-solid fa-language me-1.5"></i>五十音圖
+              </button>
+            </nav>
+          </header>
 
-  const grouped = useMemo(() => {
-    const map = {};
-    CATEGORIES.forEach(c => { map[c.id] = []; });
-    WORDS.forEach(w => {
-      if (!map[w.category]) map[w.category] = [];
-      map[w.category].push(w);
-    });
-    return map;
-  }, []);
+          {/* TAB 1: 漢字學習庫 */}
+          {activeTab === "kanji" && (
+            <section class="space-y-6">
+              {/* 搜尋欄 */}
+              <div class="relative max-w-md">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input
+                  type="text"
+                  placeholder="搜尋漢字、音讀 (片假名)、訓讀 (平假名) 或釋義..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm"
+                />
+              </div>
 
-  return (
-    <div style={styles.dashboardWrap}>
-      <section style={styles.statGrid}>
-        <StatTile label="已學單字" value={learnedCount} unit={`/ ${totalWords}`} />
-        <StatTile label="已精通" value={masteredCount} unit="個" />
-        <StatTile label="連續天數" value={streak} unit="天" />
-      </section>
-
-      <section style={styles.progressSection}>
-        <div style={styles.sectionLabel}>N5 詞彙庫進度</div>
-        <div style={styles.progressTrack}>
-          <div style={{ ...styles.progressFill, width: progressPct + "%" }} />
-        </div>
-        <div style={styles.progressPct}>{progressPct}%</div>
-      </section>
-
-      <section style={styles.wordListSection}>
-        <div style={styles.sectionLabel}>單字表 · 依主題分類（點分類展開，每個字顯示熟練度 0～6）</div>
-        <div style={styles.legendRow}>
-          <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#1F3A5F22" }} />尚未學過</span>
-          <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#C9A227" }} />學習中</span>
-          <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#6B8F71" }} />已精通</span>
-        </div>
-        <div style={styles.overviewList}>
-          {CATEGORIES.map(c => {
-            const words = grouped[c.id] || [];
-            if (words.length === 0) return null;
-            const isOpen = expanded === c.id;
-            const masteredInCat = words.filter(w => cards[w.id] && cards[w.id].mastered).length;
-            return (
-              <div key={c.id} style={styles.vocabCategoryBlock}>
-                <button style={styles.vocabCategoryHead} onClick={() => setExpanded(isOpen ? null : c.id)}>
-                  <span style={styles.vocabCategoryLabel}>{c.label}</span>
-                  <span style={styles.vocabCategoryMeta}>
-                    {words.length} 字　·　已精通 {masteredInCat}　{isOpen ? "▲" : "▼"}
-                  </span>
-                </button>
-                <div style={styles.vocabCategoryActions}>
-                  <button style={styles.vocabCategoryPracticeBtn} onClick={() => onPracticeCategory(c.id)}>
-                    測驗這個分類
-                  </button>
-                </div>
-                {isOpen && (
-                  <div style={styles.vocabWordGrid} className="km-vocab-word-grid">
-                    {words.map(w => {
-                      const stat = cards[w.id];
-                      const box = stat ? stat.box : 0;
-                      return (
-                        <div key={w.id} style={{ ...styles.vocabWordCell, ...vocabCellStyle(box) }}>
-                          <div style={styles.vocabWordMain}>
-                            <div style={styles.vocabWordKanji}>{w.kanji}</div>
-                            <div style={styles.vocabWordKana}>{w.kana}</div>
-                          </div>
-                          <div style={styles.vocabWordSide}>
-                            <div style={styles.vocabWordMeaning}>{w.meaning}</div>
-                            <div style={styles.vocabWordBox}>{box}/6</div>
-                          </div>
+              {/* 漢字網格卡片 */}
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredKanji.map((item) => (
+                  <div
+                    key={item.kanji}
+                    onClick={() => setSelectedKanji(item)}
+                    class="bg-white rounded-xl border border-slate-200 p-5 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                  >
+                    <div>
+                      <div class="flex items-start justify-between">
+                        <span class="text-4xl font-extrabold text-slate-800 bg-slate-100 w-14 h-14 rounded-lg flex items-center justify-center">
+                          {item.kanji}
+                        </span>
+                        <span class="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 font-semibold rounded-full border border-indigo-100">
+                          {item.strokes} 畫
+                        </span>
+                      </div>
+                      <div class="mt-4 space-y-1.5 text-xs">
+                        <div class="flex items-center gap-2">
+                          <span class="text-slate-400 font-medium w-10">音讀</span>
+                          <span class="text-slate-700 font-mono bg-slate-50 px-1.5 py-0.5 rounded">
+                            {item.onyomi.length > 0 ? item.onyomi.join("、") : "—"}
+                          </span>
                         </div>
-                      );
-                    })}
+                        <div class="flex items-center gap-2">
+                          <span class="text-slate-400 font-medium w-10">訓讀</span>
+                          <span class="text-slate-700 font-mono bg-slate-50 px-1.5 py-0.5 rounded">
+                            {item.kunyomi.length > 0 ? item.kunyomi.join("、") : "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span class="text-slate-600 font-medium truncate">{item.meaning}</span>
+                      <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredKanji.length === 0 && (
+                <div class="text-center py-12 text-slate-400">
+                  <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
+                  <p>未找到符合條件的漢字</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* TAB 2: 單字總覽 */}
+          {activeTab === "words" && (
+            <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <h2 class="text-lg font-bold text-slate-800 mb-4">N5 核心單字對照表</h2>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-semibold">
+                      <th class="p-3">單字 (漢字)</th>
+                      <th class="p-3">假名標記</th>
+                      <th class="p-3">中文釋義</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    {wordsData.map((w, index) => (
+                      <tr key={index} class="hover:bg-slate-50/80 transition">
+                        <td class="p-3 font-medium text-slate-800 text-base">{w.kanji || w.word}</td>
+                        <td class="p-3 text-indigo-600 font-mono">{w.kana || w.reading}</td>
+                        <td class="p-3 text-slate-600">{w.meaning || w.translation}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {/* TAB 3: 五十音 */}
+          {activeTab === "kana" && (
+            <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <h2 class="text-lg font-bold text-slate-800 mb-4">五十音基礎對照表</h2>
+              {kanaData ? (
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                  {Object.entries(kanaData.hiraganaSeion || {}).map(([romaji, kana]) => (
+                    <div key={romaji} class="bg-slate-50 border rounded-lg p-3 text-center">
+                      <div class="text-2xl font-bold text-slate-800">{kana}</div>
+                      <div class="text-xs text-slate-400 font-mono mt-1">{romaji}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p class="text-slate-500 text-sm">五十音資料無法載入或格式不符合。</p>
+              )}
+            </section>
+          )}
+
+          {/* 漢字詳細資訊彈窗 (Modal) */}
+          {selectedKanji && (
+            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  onClick={() => setSelectedKanji(null)}
+                  class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="text-6xl font-black text-slate-900 bg-indigo-50 border border-indigo-100 rounded-2xl w-24 h-24 flex items-center justify-center shadow-inner">
+                    {selectedKanji.kanji}
+                  </div>
+                  <div>
+                    <span class="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 font-semibold rounded-md">
+                      筆劃：{selectedKanji.strokes} 畫
+                    </span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-2">{selectedKanji.meaning}</h3>
+                    <p class="text-xs text-indigo-600 font-medium">難度分級：{selectedKanji.grade || "N5"}</p>
+                  </div>
+                </div>
+
+                <div class="space-y-3 bg-slate-50 p-4 rounded-xl mb-6">
+                  <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">音讀 (Onyomi)</span>
+                    <div class="flex flex-wrap gap-1.5">
+                      {selectedKanji.onyomi.map(o => (
+                        <span key={o} class="bg-indigo-600 text-white text-xs font-mono px-2 py-0.5 rounded">{o}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div class="pt-2 border-t border-slate-200/60">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">訓讀 (Kunyomi)</span>
+                    <div class="flex flex-wrap gap-1.5">
+                      {selectedKanji.kunyomi.map(k => (
+                        <span key={k} class="bg-emerald-600 text-white text-xs font-mono px-2 py-0.5 rounded">{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {selectedKanji.related_words && selectedKanji.related_words.length > 0 && (
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">相關詞彙聯動</h4>
+                    <div class="flex flex-wrap gap-2">
+                      {selectedKanji.related_words.map((rw, i) => (
+                        <span key={i} class="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg">
+                          {rw}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function vocabCellStyle(box) {
-  if (box >= 6) return { background: "#6B8F711A", border: "1px solid #6B8F7155" };
-  if (box >= 1) return { background: "#C9A2271A", border: "1px solid #C9A22755" };
-  return {};
-}
-
-
-function StatTile({ label, value, unit }) {
-  return (
-    <div style={styles.statTile}>
-      <div style={styles.statValue}>{value}<span style={styles.statUnit}>{unit}</span></div>
-      <div style={styles.statLabel}>{label}</div>
-    </div>
-  );
-}
-
-function SessionView({ word, index, total, flipped, setFlipped, onAnswer, isNew, answerChoice, onPrev, onNext, canGoPrev, onQuit }) {
-  const answered = answerChoice !== null && answerChoice !== undefined;
-  return (
-    <div style={styles.sessionWrap}>
-      <div style={styles.sessionProgress}>
-        <div style={styles.sessionProgressTrack}>
-          <div style={{ ...styles.sessionProgressFill, width: `${(index / total) * 100}%` }} />
-        </div>
-        <div style={styles.sessionNavRow}>
-          <button style={{ ...styles.navArrowBtn, opacity: canGoPrev ? 1 : 0.3 }} onClick={onPrev} disabled={!canGoPrev}>
-            ← 上一個
-          </button>
-          <div style={styles.sessionProgressText}>{index + 1} / {total}{isNew ? "　· 新單字" : "　· 複習"}</div>
-          <button style={styles.quitBtn} onClick={onQuit}>結束</button>
-        </div>
-      </div>
-
-      <div style={styles.flashcardOuter} onClick={() => setFlipped(f => !f)}>
-        <div style={{ ...styles.flashcardInner, transform: flipped ? "rotateY(180deg)" : "none" }}>
-          <div style={styles.cardFace}>
-            <div style={styles.posTag}>{word.pos}</div>
-            <div style={styles.cardKanji}>{word.kanji}</div>
-            <div style={styles.cardKana}>{word.kana}</div>
-            <div style={styles.tapHint}>點擊卡片查看意思</div>
-          </div>
-          <div style={{ ...styles.cardFace, ...styles.cardFaceBack }}>
-            <div style={styles.cardMeaning}>{word.meaning}</div>
-            <div style={styles.cardRomaji}>{word.romaji}</div>
-            <div style={styles.examplesWrap}>
-              {word.examples.map((ex, i) => (
-                <div style={styles.exampleBox} key={i}>
-                  <div style={styles.exampleJp}>{ex.jp}</div>
-                  <div style={styles.exampleReading}>{ex.reading}</div>
-                  <div style={styles.exampleZh}>{ex.zh}</div>
-                  {ex.gloss.length > 0 && (
-                    <div style={styles.glossWrap}>
-                      {ex.gloss.map((g, gi) => (
-                        <div key={gi} style={styles.glossChip}>
-                          <span style={styles.glossWord}>{g.key}</span>
-                          <span style={styles.glossReading}>{g.reading}</span>
-                          <span style={styles.glossMeaning}>{g.meaning}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {answered ? (
-        <>
-          <div style={styles.answeredNote}>
-            {answerChoice ? "✓ 已標記：我認識" : "○ 已標記：還不熟悉"}
-          </div>
-          <button style={styles.ctaButton} onClick={onNext}>
-            {index + 1 >= total ? "完成本次修行" : "下一個單字"}
-          </button>
-        </>
-      ) : flipped ? (
-        <div style={styles.answerRow}>
-          <button style={{ ...styles.answerBtn, ...styles.answerBtnNo }} onClick={() => onAnswer(false)}>
-            還不熟悉
-          </button>
-          <button style={{ ...styles.answerBtn, ...styles.answerBtnYes }} onClick={() => onAnswer(true)}>
-            我認識
-          </button>
-        </div>
-      ) : (
-        <p style={styles.flipInstruction}>看看你記得這個字嗎？點卡片翻面</p>
-      )}
-    </div>
-  );
-}
-
-function DoneView({ stats, streak, onBack }) {
-  const acc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-  return (
-    <div style={styles.doneWrap}>
-      <div style={styles.sealLarge}>完</div>
-      <h2 style={styles.doneTitle}>本日修行完成</h2>
-      <p style={styles.doneSub}>學了 {stats.newCount} 個新單字，複習了 {stats.total - stats.newCount} 個舊單字</p>
-      <div style={styles.doneStatsRow}>
-        <StatTile label="答對率" value={acc} unit="%" />
-        <StatTile label="連續天數" value={streak} unit="天" />
-      </div>
-      <button style={styles.ctaButton} onClick={onBack}>回到首頁</button>
-    </div>
-  );
-}
-
-function StatsView({
-  log, learnedCount, masteredCount, totalWords, streak,
-  learnerEmail, onSaveEmail, vocabWeak, kanaMistakeItems,
-  kanaAccuracy,
-}) {
-  const days = useMemo(() => {
-    const arr = [];
-    for (let i = 27; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-      const entry = log[key];
-      const count = entry ? entry.learned + entry.reviewed : 0;
-      arr.push({ key, count });
-    }
-    return arr;
-  }, [log]);
-  const maxCount = Math.max(1, ...days.map(d => d.count));
-
-  return (
-    <div style={styles.statsWrap}>
-      <EmailLabel learnerEmail={learnerEmail} onSaveEmail={onSaveEmail} />
-
-      <section style={styles.statGrid}>
-        <StatTile label="已學單字" value={learnedCount} unit={`/ ${totalWords}`} />
-        <StatTile label="已精通" value={masteredCount} unit="個" />
-        <StatTile label="連續天數" value={streak} unit="天" />
-      </section>
-      <section style={styles.heatmapSection}>
-        <div style={styles.sectionLabel}>近 28 日學習狀況</div>
-        <div style={styles.heatmapGrid}>
-          {days.map(d => (
-            <div
-              key={d.key}
-              title={`${d.key}：${d.count} 個`}
-              style={{
-                ...styles.heatCell,
-                background: d.count === 0 ? "#1F3A5F0D" : `rgba(188,74,60,${0.2 + 0.8 * (d.count / maxCount)})`,
-              }}
-            />
-          ))}
-        </div>
-      </section>
-      {learnedCount === 0 && (
-        <p style={styles.emptyNote}>還沒有學習紀錄，回到「今日」開始你的第一次修行吧。</p>
-      )}
-
-      <WeakPointSection vocabWeak={vocabWeak} kanaMistakeItems={kanaMistakeItems} kanaAccuracy={kanaAccuracy} />
-    </div>
-  );
-}
-
-function EmailLabel({ learnerEmail, onSaveEmail }) {
-  const [editing, setEditing] = useState(!learnerEmail);
-  const [draft, setDraft] = useState(learnerEmail || "");
-
-  function handleSave() {
-    onSaveEmail(draft.trim());
-    setEditing(false);
-  }
-
-  if (!editing) {
-    return (
-      <div style={styles.emailBar}>
-        <span style={styles.emailBarText}>{learnerEmail} 的學習歷程</span>
-        <button style={styles.emailEditBtn} onClick={() => setEditing(true)}>更換</button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={styles.emailBar}>
-      <input
-        type="email"
-        placeholder="輸入 email 幫這份紀錄加上標籤"
-        value={draft}
-        onChange={e => setDraft(e.target.value)}
-        style={styles.emailInput}
-      />
-      <button style={styles.emailEditBtn} onClick={handleSave}>儲存</button>
-    </div>
-  );
-}
-
-function WeakPointSection({ vocabWeak, kanaMistakeItems, kanaAccuracy }) {
-  const [tab, setTab] = useState("vocab");
-  return (
-    <section style={styles.weakSection}>
-      <div style={styles.sectionLabel}>弱點診斷 · 該加強的部分</div>
-      <div style={styles.weakTabRow}>
-        <button style={weakTabBtn(tab === "vocab")} onClick={() => setTab("vocab")}>單字（{vocabWeak.length}）</button>
-        <button style={weakTabBtn(tab === "kana")} onClick={() => setTab("kana")}>假名（{kanaMistakeItems.length}）</button>
-      </div>
-
-      {tab === "vocab" && (
-        vocabWeak.length === 0 ? (
-          <p style={styles.weakEmpty}>目前沒有還在學習中的單字，太棒了！</p>
-        ) : (
-          <div style={styles.weakList}>
-            {vocabWeak.slice(0, 20).map(w => (
-              <div key={w.id} style={styles.weakItem}>
-                <span style={styles.weakItemMain}>{w.kanji}（{w.kana}）</span>
-                <span style={styles.weakItemMeta}>{w.meaning}　·　{w.box}/6</span>
-              </div>
-            ))}
-          </div>
-        )
-      )}
-
-      {tab === "kana" && (
-        <>
-          {kanaAccuracy !== null && <p style={styles.weakAccuracy}>假名測驗整體正確率：{kanaAccuracy}%</p>}
-          {kanaMistakeItems.length === 0 ? (
-            <p style={styles.weakEmpty}>目前沒有常錯的假名。</p>
-          ) : (
-            <div style={styles.weakList}>
-              {kanaMistakeItems.slice(0, 20).map(k => (
-                <div key={k.kana} style={styles.weakItem}>
-                  <span style={styles.weakItemMain}>{k.kana}（{k.romaji}）</span>
-                  <span style={styles.weakItemMeta}>答錯 {k.wrong} 次</span>
-                </div>
-              ))}
             </div>
           )}
-        </>
-      )}
-    </section>
-  );
-}
-
-function weakTabBtn(active) {
-  return {
-    flex: 1, padding: "9px 0", borderRadius: 10,
-    border: active ? "2px solid #BC4A3C" : "1px solid #1F3A5F33",
-    background: active ? "#BC4A3C14" : "#FFFFFF",
-    color: active ? "#BC4A3C" : "#1F3A5F",
-    fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'Noto Sans TC', sans-serif",
-  };
-}
-
-function KanaMenu({ onStart, onOverview, onMistakes, mistakeCount }) {
-  return (
-    <div style={styles.kanaMenuWrap}>
-      <section style={styles.heroCard}>
-        <div style={styles.sealLarge}>假</div>
-        <div style={{ flex: 1 }}>
-          <div style={styles.heroLabel}>五十音測驗 · KANA DRILL</div>
-          <div style={{ ...styles.heroCount, fontSize: 30 }}>選一個分類開始</div>
-          <div style={styles.heroBreakdown}>平假名／片假名的清音、濁音、拗音，各自獨立測驗，也可以做綜合測驗。</div>
         </div>
-      </section>
-
-      <button style={styles.overviewBtn} onClick={onOverview}>
-        <span>📊 查看全部種類總覽</span>
-        <span style={styles.overviewBtnArrow}>›</span>
-      </button>
-
-      <button
-        style={{ ...styles.mistakeBtn, opacity: mistakeCount > 0 ? 1 : 0.4, cursor: mistakeCount > 0 ? "pointer" : "default" }}
-        onClick={mistakeCount > 0 ? onMistakes : undefined}
-        disabled={mistakeCount === 0}
-      >
-        <span>🎯 常錯字練習</span>
-        <span style={styles.mistakeBtnCount}>{mistakeCount > 0 ? `${mistakeCount} 個待加強` : "目前沒有錯字紀錄"}</span>
-      </button>
-
-      <div style={styles.sectionLabel}>平假名</div>
-      <div style={styles.kanaGrid} className="km-kana-grid">
-        {KANA_CATEGORIES.filter(c => c.script === "平假名").map(c => (
-          <button key={c.id} style={styles.kanaCard} onClick={() => onStart(c)}>
-            <div style={styles.kanaCardLabel}>{c.short}</div>
-            <div style={styles.kanaCardCount}>{c.data.length} 個</div>
-          </button>
-        ))}
-      </div>
-
-      <div style={styles.sectionLabel}>片假名</div>
-      <div style={styles.kanaGrid} className="km-kana-grid">
-        {KANA_CATEGORIES.filter(c => c.script === "片假名").map(c => (
-          <button key={c.id} style={styles.kanaCard} onClick={() => onStart(c)}>
-            <div style={styles.kanaCardLabel}>{c.short}</div>
-            <div style={styles.kanaCardCount}>{c.data.length} 個</div>
-          </button>
-        ))}
-      </div>
-
-      <button
-        style={styles.ctaButton}
-        onClick={() => onStart({ id: "all", label: "綜合測驗", short: "綜合測驗", script: "全部", data: KANA_ALL })}
-      >
-        綜合測驗（全部 {KANA_ALL.length} 個）
-      </button>
-    </div>
-  );
-}
-
-function KanaOverviewView({ overview, kanaStats, onBack }) {
-  const { totals } = overview;
-  const totalAcc = totals.attempts > 0 ? Math.round((totals.correct / totals.attempts) * 100) : null;
-
-  function statusOf(kana) {
-    if (!kana) return "blank";
-    const s = kanaStats[kana];
-    if (!s) return "neutral";
-    if (s.wrong > 0 && (s.streak || 0) < MISTAKE_CLEAR_STREAK) return "mistake";
-    return "ok";
-  }
-
-  return (
-    <div style={styles.kanaMenuWrap}>
-      <section style={styles.heroCard}>
-        <div style={styles.sealLarge}>總</div>
-        <div style={{ flex: 1 }}>
-          <div style={styles.heroLabel}>五十音總覽 · 傳統字表</div>
-          <div style={{ ...styles.heroCount, fontSize: 30 }}>
-            {totals.touched} <span style={styles.heroCountUnit}>/ {totals.total} 字已練過</span>
-          </div>
-          <div style={styles.heroBreakdown}>
-            {totalAcc === null ? "還沒有作答紀錄" : `整體正確率 ${totalAcc}%　· 共答題 ${totals.attempts} 次`}
-          </div>
-        </div>
-      </section>
-
-      <div style={styles.legendRow}>
-        <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#6B8F71" }} />穩定</span>
-        <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#BC4A3C" }} />常錯</span>
-        <span style={styles.legendItem}><span style={{ ...styles.legendDot, background: "#1F3A5F22" }} />尚未練習</span>
-      </div>
-
-      <p style={styles.gojuonHint}>左右滑動可看完整表格；每格上方標羅馬字／片假名／字源漢字，下方是平假名本字。</p>
-
-      <div style={styles.gojuonWrap}>
-        <div style={styles.gojuonTable}>
-          {GOJUON_ROWS.map(group => (
-            <React.Fragment key={group.label}>
-              {group.subrows.map((sub, si) => (
-                <div key={group.label + si} style={styles.gojuonRow}>
-                  <div style={styles.gojuonRowLabel}>
-                    {si === 0 && group.label.split("").map((ch, i) => <div key={i}>{ch}</div>)}
-                  </div>
-                  {sub.cells.map((c, ci) => (
-                    <React.Fragment key={ci}>
-                      <GojuonCell cell={c} status={statusOf(c.kana)} big={!sub.single} />
-                      {sub.youon && ci === 1 && (
-                        <div style={styles.gojuonYouonGroup}>
-                          {sub.youon.map((yc, yi) => (
-                            <GojuonCell key={yi} cell={yc} status={statusOf(yc.kana)} small />
-                          ))}
-                        </div>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      <button style={{ ...styles.answerBtn, ...styles.answerBtnNo, maxWidth: 420 }} onClick={onBack}>返回假名選單</button>
-    </div>
-  );
-}
-
-function GojuonCell({ cell, status, small }) {
-  const cellClass = "km-gojuon-cell " + (small ? "km-gojuon-cell-sm" : "km-gojuon-cell-lg");
-  if (!cell.kana) {
-    return <div style={{ ...styles.gojuonCell, width: small ? 76 : 70 }} className={cellClass} />;
-  }
-  const statusBg =
-    status === "ok" ? "#6B8F711A" :
-    status === "mistake" ? "#BC4A3C14" : "transparent";
-  return (
-    <div style={{ ...styles.gojuonCell, width: small ? 76 : 70, background: statusBg }} className={cellClass}>
-      <div style={styles.gojuonCellStack} className="km-gojuon-stack">
-        <div style={styles.gojuonRomaji} className="km-gojuon-romaji">{cell.romaji}</div>
-        <div style={styles.gojuonKata} className="km-gojuon-kata">{cell.kata}</div>
-        {cell.origin && <div style={styles.gojuonOrigin} className="km-gojuon-origin">{cell.origin}</div>}
-      </div>
-      <div style={{ ...styles.gojuonBig, fontSize: small ? 18 : 30 }} className="km-gojuon-big">{cell.kana}</div>
-    </div>
-  );
-}
-
-function KanaQuizView({ category, item, index, total, options, selected, score, onAnswer, onNext, onPrev, canGoPrev, onQuit }) {
-  const answered = selected !== null && selected !== undefined;
-  return (
-    <div style={styles.sessionWrap}>
-      <div style={styles.sessionProgress}>
-        <div style={styles.sessionProgressTrack}>
-          <div style={{ ...styles.sessionProgressFill, width: `${(index / total) * 100}%` }} />
-        </div>
-        <div style={styles.sessionNavRow}>
-          <button style={{ ...styles.navArrowBtn, opacity: canGoPrev ? 1 : 0.3 }} onClick={onPrev} disabled={!canGoPrev}>
-            ← 上一個
-          </button>
-          <div style={styles.sessionProgressText}>{category.label}　{index + 1} / {total}　· 答對 {score}</div>
-          <button style={styles.quitBtn} onClick={onQuit}>結束</button>
-        </div>
-      </div>
-
-      <div style={styles.kanaBigCard}>
-        <div style={styles.kanaBigChar}>{item.kana}</div>
-      </div>
-
-      <div style={styles.kanaOptionsGrid}>
-        {options.map(opt => {
-          let bg = styles.kanaOptionBtn;
-          if (answered) {
-            if (opt === item.romaji) bg = { ...styles.kanaOptionBtn, ...styles.kanaOptionCorrect };
-            else if (opt === selected) bg = { ...styles.kanaOptionBtn, ...styles.kanaOptionWrong };
-            else bg = { ...styles.kanaOptionBtn, opacity: 0.5 };
-          }
-          return (
-            <button key={opt} style={bg} onClick={() => onAnswer(opt)} disabled={answered}>
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-
-      {answered && (
-        <button style={styles.ctaButton} onClick={onNext}>
-          {index + 1 >= total ? "查看結果" : "下一題"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-function KanaResultView({ category, score, total, wrong, onRetry, onBack }) {
-  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
-  return (
-    <div style={styles.doneWrap}>
-      <div style={styles.sealLarge}>結</div>
-      <h2 style={styles.doneTitle}>{category.label} 完成</h2>
-      <p style={styles.doneSub}>答對 {score} / {total}</p>
-      <div style={styles.doneStatsRow}>
-        <StatTile label="正確率" value={pct} unit="%" />
-        <StatTile label="答錯數" value={wrong.length} unit="個" />
-      </div>
-      {wrong.length > 0 && (
-        <div style={styles.wrongListBox}>
-          <div style={styles.sectionLabel}>需要加強</div>
-          <div style={styles.wrongGrid}>
-            {wrong.map((w, i) => (
-              <div key={i} style={styles.wrongItem}>
-                <span style={styles.wrongKana}>{w.kana}</span>
-                <span style={styles.wrongRomaji}>{w.romaji}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={{ display: "flex", gap: 12, width: "100%", maxWidth: 380 }}>
-        <button style={{ ...styles.answerBtn, ...styles.answerBtnNo }} onClick={onBack}>回選單</button>
-        <button style={{ ...styles.answerBtn, ...styles.answerBtnYes }} onClick={onRetry}>再測一次</button>
-      </div>
-    </div>
-  );
-}
-
-function FontLoader() {
-  return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-      * { box-sizing: border-box; }
-
-      /* responsive content width: inline styles used to hardcode a 560px cap
-         everywhere, which made the whole app look phone-only even on tablets
-         and desktop browsers. Real media queries here take over that job
-         instead (max-width set via className, not inline style). */
-      .km-main { max-width: 560px; margin: 0 auto; }
-      @media (min-width: 720px) {
-        .km-main { max-width: 720px; }
-      }
-      @media (min-width: 1024px) {
-        .km-main { max-width: 960px; }
-      }
-      @media (min-width: 1400px) {
-        .km-main { max-width: 1120px; }
-      }
-
-      /* let a few grids use the extra room on wider screens */
-      @media (min-width: 720px) {
-        .km-vocab-word-grid { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .km-kana-grid { grid-template-columns: repeat(4, 1fr) !important; }
-      }
-      @media (min-width: 1024px) {
-        .km-vocab-word-grid { grid-template-columns: repeat(3, 1fr); }
-        .km-kana-grid { grid-template-columns: repeat(6, 1fr) !important; }
-      }
-
-      /* the gojuon reference table uses fixed pixel cells so it stays legible
-         at any width; on roomier screens we scale those cells up instead of
-         just leaving extra blank space around a phone-sized table */
-      @media (min-width: 1024px) {
-        .km-gojuon-cell-lg { width: 96px !important; }
-        .km-gojuon-cell-sm { width: 100px !important; }
-        .km-gojuon-stack { width: 32px !important; }
-        .km-gojuon-big { font-size: 40px !important; }
-        .km-gojuon-cell-sm .km-gojuon-big { font-size: 26px !important; }
-        .km-gojuon-romaji { font-size: 12px !important; }
-        .km-gojuon-kata { font-size: 13px !important; }
-        .km-gojuon-origin { font-size: 12px !important; }
-      }
-    `}</style>
-  );
-}
-
-/* ------------------------------- styles ---------------------------------- */
-const styles = {
-  app: {
-    minHeight: "100vh",
-    background: "#F5F0E6",
-    fontFamily: "'Noto Sans TC', sans-serif",
-    color: "#2B2B2B",
-    fontSize: 16,
-    paddingBottom: 48,
-  },
-  loadingScreen: {
-    minHeight: "100vh",
-    background: "#1F3A5F",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  seal: {
-    width: 84, height: 84, borderRadius: "50%",
-    border: "3px solid #BC4A3C", color: "#BC4A3C",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Shippori Mincho', serif", fontSize: 40,
-  },
-  errorBanner: {
-    background: "#BC4A3C", color: "#fff", textAlign: "center",
-    padding: "10px 14px", fontSize: 15,
-  },
-  header: {
-    background: "#1F3A5F",
-    padding: "22px 20px",
-    borderBottom: "4px solid #BC4A3C",
-  },
-  headerInner: {
-    margin: "0 auto",
-    display: "flex", flexDirection: "column", gap: 14,
-  },
-  headerTopRow: {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-  },
-  brandKanji: {
-    fontFamily: "'Shippori Mincho', serif",
-    fontSize: 34, color: "#F5F0E6", letterSpacing: 2, fontWeight: 700,
-  },
-  brandSub: {
-    fontSize: 13, color: "#F5F0E699", letterSpacing: 1.5, marginTop: 3,
-  },
-  headerRight: { display: "flex", alignItems: "center", gap: 10 },
-  streakBadge: {
-    display: "flex", alignItems: "center", gap: 6,
-    color: "#F5F0E6", fontFamily: "'Shippori Mincho', serif", fontSize: 22,
-  },
-  nav: {
-    display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2,
-    WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
-  },
-  main: { margin: "0 auto", padding: "24px 16px" },
-
-  dashboardWrap: { display: "flex", flexDirection: "column", gap: 22 },
-  heroCard: {
-    background: "#1F3A5F", borderRadius: 22, padding: 26,
-    display: "flex", gap: 18, alignItems: "flex-start",
-    boxShadow: "0 6px 20px #1F3A5F33",
-  },
-  sealLarge: {
-    width: 64, height: 64, minWidth: 64, borderRadius: "50%",
-    border: "3px solid #BC4A3C", color: "#BC4A3C", background: "#F5F0E6",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Shippori Mincho', serif", fontSize: 30, fontWeight: 700,
-  },
-  heroLabel: { color: "#F5F0E699", fontSize: 14, letterSpacing: 1.5, marginBottom: 8 },
-  heroCount: { color: "#F5F0E6", fontFamily: "'Shippori Mincho', serif", fontSize: 50, fontWeight: 700, lineHeight: 1 },
-  heroCountUnit: { fontSize: 19, fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 400 },
-  heroBreakdown: { color: "#F5F0E6CC", fontSize: 16, margin: "10px 0 20px" },
-  ctaButton: {
-    background: "#BC4A3C", color: "#F5F0E6", border: "none",
-    borderRadius: 999, padding: "15px 32px", fontSize: 18, fontWeight: 700,
-    fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 1,
-  },
-  sectionLabel: { fontSize: 14, color: "#1F3A5F99", letterSpacing: 1.5, marginBottom: 12, fontWeight: 600 },
-
-  statGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 },
-  statTile: {
-    background: "#FFFFFF", borderRadius: 16, padding: "20px 12px",
-    textAlign: "center", border: "1px solid #1F3A5F1A",
-  },
-  statValue: { fontFamily: "'Shippori Mincho', serif", fontSize: 32, fontWeight: 700, color: "#1F3A5F" },
-  statUnit: { fontSize: 15, fontFamily: "'Noto Sans TC', sans-serif", color: "#1F3A5F99", marginLeft: 4 },
-  statLabel: { fontSize: 14, color: "#2B2B2B88", marginTop: 6 },
-
-  progressSection: { background: "#FFFFFF", borderRadius: 18, padding: 22, border: "1px solid #1F3A5F1A" },
-  wordListSection: { display: "flex", flexDirection: "column", gap: 12 },
-  progressTrack: { height: 14, borderRadius: 8, background: "#1F3A5F14", overflow: "hidden" },
-  progressFill: { height: "100%", background: "#6B8F71", borderRadius: 8, transition: "width 0.3s" },
-  progressPct: { textAlign: "right", fontSize: 15, color: "#1F3A5F99", marginTop: 8 },
-
-  sessionWrap: { display: "flex", flexDirection: "column", gap: 20, alignItems: "center" },
-  sessionProgress: { width: "100%" },
-  sessionProgressTrack: { height: 8, borderRadius: 5, background: "#1F3A5F14", overflow: "hidden" },
-  sessionProgressFill: { height: "100%", background: "#BC4A3C", borderRadius: 5, transition: "width 0.3s" },
-  sessionProgressText: { fontSize: 15, color: "#1F3A5F99", marginTop: 8, textAlign: "center" },
-  sessionNavRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 },
-  navArrowBtn: {
-    background: "transparent", border: "1px solid #1F3A5F33", borderRadius: 999,
-    padding: "7px 16px", fontSize: 14, color: "#1F3A5F", fontFamily: "'Noto Sans TC', sans-serif",
-    cursor: "pointer", width: 78,
-  },
-  quitBtn: {
-    background: "transparent", border: "1px solid #BC4A3C55", borderRadius: 999,
-    padding: "7px 16px", fontSize: 14, color: "#BC4A3C", fontFamily: "'Noto Sans TC', sans-serif",
-    cursor: "pointer", width: 78,
-  },
-
-  flashcardOuter: {
-    width: "100%", maxWidth: 480, height: 520, cursor: "pointer",
-    perspective: 1400,
-  },
-  flashcardInner: {
-    position: "relative", width: "100%", height: "100%",
-    transformStyle: "preserve-3d", transition: "transform 0.5s",
-  },
-  cardFace: {
-    position: "absolute", inset: 0, borderRadius: 24,
-    background: "#FFFFFF", border: "1px solid #1F3A5F22",
-    boxShadow: "0 8px 24px #1F3A5F22",
-    backfaceVisibility: "hidden",
-    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    padding: 28, textAlign: "center",
-    overflowY: "auto",
-  },
-  cardFaceBack: { transform: "rotateY(180deg)", background: "#1F3A5F" },
-  posTag: {
-    position: "absolute", top: 18, left: 20, fontSize: 14,
-    color: "#BC4A3C", border: "1px solid #BC4A3C55", borderRadius: 999,
-    padding: "3px 12px", letterSpacing: 1,
-  },
-  cardKanji: { fontFamily: "'Shippori Mincho', serif", fontSize: 68, fontWeight: 700, color: "#1F3A5F" },
-  cardKana: { fontSize: 52, color: "#2B2B2B99", marginTop: 10 },
-  tapHint: { position: "absolute", bottom: 20, fontSize: 14, color: "#2B2B2B55", letterSpacing: 1 },
-  cardMeaning: { fontFamily: "'Shippori Mincho', serif", fontSize: 42, color: "#F5F0E6", fontWeight: 700 },
-  cardRomaji: { fontSize: 34, color: "#F5F0E699", marginTop: 8, fontStyle: "italic" },
-  examplesWrap: { marginTop: 22, width: "100%", display: "flex", flexDirection: "column", gap: 16 },
-  exampleBox: { borderTop: "1px solid #F5F0E633", paddingTop: 16, width: "100%" },
-  exampleJp: { fontSize: 38, color: "#F5F0E6", fontFamily: "'Shippori Mincho', serif", lineHeight: 1.5 },
-  exampleReading: { fontSize: 30, color: "#F5F0E699", marginTop: 5 },
-  exampleZh: { fontSize: 16, color: "#E8896F", marginTop: 8, fontWeight: 600 },
-  glossWrap: { marginTop: 12, display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" },
-  glossChip: {
-    display: "flex", alignItems: "baseline", gap: 8,
-    background: "#F5F0E60F", border: "1px solid #F5F0E626", borderRadius: 10,
-    padding: "5px 10px",
-  },
-  glossWord: { fontSize: 15, color: "#F5F0E6", fontFamily: "'Shippori Mincho', serif", fontWeight: 600 },
-  glossReading: { fontSize: 12, color: "#F5F0E699" },
-  glossMeaning: { fontSize: 13, color: "#E8896F" },
-
-  answeredNote: { fontSize: 16, color: "#6B8F71", fontWeight: 700 },
-
-  flipInstruction: { fontSize: 16, color: "#1F3A5F99" },
-  answerRow: { display: "flex", gap: 14, width: "100%", maxWidth: 480 },
-  answerBtn: {
-    flex: 1, padding: "17px 0", borderRadius: 16, border: "none",
-    fontSize: 17, fontWeight: 700, fontFamily: "'Noto Sans TC', sans-serif", cursor: "pointer",
-  },
-  answerBtnNo: { background: "#1F3A5F14", color: "#1F3A5F" },
-  answerBtnYes: { background: "#6B8F71", color: "#F5F0E6" },
-
-  doneWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "28px 0", textAlign: "center" },
-  doneTitle: { fontFamily: "'Shippori Mincho', serif", fontSize: 32, color: "#1F3A5F", margin: 0 },
-  doneSub: { fontSize: 16, color: "#2B2B2B88", margin: 0 },
-  doneStatsRow: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, width: "100%", maxWidth: 320, margin: "12px 0" },
-
-  statsWrap: { display: "flex", flexDirection: "column", gap: 22 },
-  heatmapSection: { background: "#FFFFFF", borderRadius: 18, padding: 22, border: "1px solid #1F3A5F1A" },
-  heatmapGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 7 },
-  heatCell: { aspectRatio: "1", borderRadius: 6 },
-  emptyNote: { fontSize: 16, color: "#2B2B2B77", textAlign: "center", padding: "24px 0" },
-
-  kanaMenuWrap: { display: "flex", flexDirection: "column", gap: 16 },
-  kanaGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 },
-  kanaCard: {
-    background: "#FFFFFF", border: "1px solid #1F3A5F1A", borderRadius: 16,
-    padding: "18px 8px", textAlign: "center", cursor: "pointer",
-  },
-  kanaCardLabel: { fontFamily: "'Shippori Mincho', serif", fontSize: 20, color: "#1F3A5F", fontWeight: 700 },
-  kanaCardCount: { fontSize: 13, color: "#2B2B2B77", marginTop: 6 },
-
-  kanaBigCard: {
-    width: "100%", maxWidth: 420, height: 260, borderRadius: 24,
-    background: "#1F3A5F", display: "flex", alignItems: "center", justifyContent: "center",
-    boxShadow: "0 8px 24px #1F3A5F22",
-  },
-  kanaBigChar: { fontFamily: "'Shippori Mincho', serif", fontSize: 130, color: "#F5F0E6", fontWeight: 700 },
-  kanaOptionsGrid: {
-    display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14,
-    width: "100%", maxWidth: 420,
-  },
-  kanaOptionBtn: {
-    padding: "22px 0", borderRadius: 16, border: "1px solid #1F3A5F22",
-    background: "#FFFFFF", color: "#1F3A5F", fontSize: 26, fontWeight: 700,
-    fontFamily: "'Noto Sans TC', sans-serif", cursor: "pointer",
-  },
-  kanaOptionCorrect: { background: "#6B8F71", color: "#F5F0E6", border: "none" },
-  kanaOptionWrong: { background: "#BC4A3C", color: "#F5F0E6", border: "none" },
-
-  wrongListBox: { width: "100%", maxWidth: 420, background: "#FFFFFF", borderRadius: 16, padding: 18, border: "1px solid #1F3A5F1A" },
-  wrongGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 },
-  wrongItem: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
-  wrongKana: { fontFamily: "'Shippori Mincho', serif", fontSize: 24, color: "#1F3A5F" },
-  wrongRomaji: { fontSize: 12, color: "#2B2B2B77" },
-
-  overviewBtn: {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    background: "#FFFFFF", border: "1px solid #1F3A5F1A", borderRadius: 16,
-    padding: "16px 20px", fontSize: 16, color: "#1F3A5F", fontFamily: "'Noto Sans TC', sans-serif",
-    fontWeight: 600, cursor: "pointer",
-  },
-  overviewBtnArrow: { fontSize: 20, color: "#1F3A5F99" },
-  mistakeBtn: {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    background: "#BC4A3C0F", border: "1px solid #BC4A3C40", borderRadius: 16,
-    padding: "16px 20px", fontSize: 16, color: "#BC4A3C", fontFamily: "'Noto Sans TC', sans-serif",
-    fontWeight: 700,
-  },
-  mistakeBtnCount: { fontSize: 13, fontWeight: 400 },
-
-  overviewList: { display: "flex", flexDirection: "column", gap: 14 },
-  overviewRow: { background: "#FFFFFF", borderRadius: 16, padding: 18, border: "1px solid #1F3A5F1A" },
-  overviewRowHead: { display: "flex", justifyContent: "space-between", marginBottom: 8 },
-  overviewRowLabel: { fontFamily: "'Shippori Mincho', serif", fontSize: 18, color: "#1F3A5F", fontWeight: 700 },
-  overviewRowMeta: { fontSize: 13, color: "#2B2B2B88" },
-  overviewRowFoot: { fontSize: 13, color: "#2B2B2B88", marginTop: 8 },
-
-  legendRow: { display: "flex", gap: 18, alignItems: "center", padding: "2px 4px" },
-  legendItem: { display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#2B2B2B88" },
-  legendDot: { width: 10, height: 10, borderRadius: "50%", display: "inline-block" },
-
-  tableSection: { display: "flex", flexDirection: "column", gap: 10 },
-  kanaTableGrid: { display: "grid", gap: 8 },
-  kanaTableCell: {
-    background: "#FFFFFF", border: "1px solid #1F3A5F1A", borderRadius: 10,
-    padding: "10px 4px", textAlign: "center",
-  },
-  kanaTableCellOk: { background: "#6B8F711A", border: "1px solid #6B8F7155" },
-  kanaTableCellMistake: { background: "#BC4A3C14", border: "1px solid #BC4A3C55" },
-  kanaTableChar: { fontFamily: "'Shippori Mincho', serif", fontSize: 24, color: "#1F3A5F", fontWeight: 700 },
-  kanaTableRomaji: { fontSize: 11, color: "#2B2B2B77", marginTop: 2 },
-
-  gojuonHint: { fontSize: 13, color: "#2B2B2B77", margin: 0, lineHeight: 1.6 },
-  gojuonWrap: { overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 8 },
-  gojuonTable: { display: "flex", flexDirection: "column", width: "max-content", background: "#FFFFFF", borderRadius: 12, border: "1px solid #1F3A5F22", overflow: "hidden" },
-  gojuonRow: { display: "flex", borderBottom: "1px solid #1F3A5F1A" },
-  gojuonRowLabel: {
-    width: 30, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    fontSize: 12, fontWeight: 700, color: "#BC4A3C", borderRight: "1px solid #1F3A5F1A", background: "#F5F0E680",
-    lineHeight: 1.3, padding: "4px 0",
-  },
-  gojuonCell: {
-    flexShrink: 0, display: "flex", alignItems: "center", gap: 3, padding: "6px 3px",
-    borderRight: "1px solid #1F3A5F14", overflow: "hidden", boxSizing: "border-box",
-  },
-  gojuonCellStack: { display: "flex", flexDirection: "column", lineHeight: 1.25, flexShrink: 0, width: 24 },
-  gojuonRomaji: { fontSize: 9, color: "#2B2B2B99", whiteSpace: "nowrap" },
-  gojuonKata: { fontSize: 10, color: "#3B6FA0", fontWeight: 600, whiteSpace: "nowrap" },
-  gojuonOrigin: { fontSize: 9, color: "#BC4A3C99", whiteSpace: "nowrap" },
-  gojuonBig: { fontFamily: "'Shippori Mincho', serif", color: "#1F3A5F", fontWeight: 700, flex: 1, textAlign: "center", overflow: "hidden" },
-  gojuonYouonGroup: { display: "flex", borderRight: "1px solid #1F3A5F14", overflow: "hidden" },
-
-  vocabCategoryBlock: { background: "#FFFFFF", borderRadius: 16, border: "1px solid #1F3A5F1A", overflow: "hidden" },
-  vocabCategoryHead: {
-    width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-    background: "transparent", border: "none", padding: "16px 18px", cursor: "pointer",
-  },
-  vocabCategoryLabel: { fontFamily: "'Shippori Mincho', serif", fontSize: 18, color: "#1F3A5F", fontWeight: 700 },
-  vocabCategoryMeta: { fontSize: 13, color: "#2B2B2B88" },
-  vocabWordGrid: {
-    display: "flex", flexDirection: "column", gap: 10,
-    padding: "0 14px 16px",
-  },
-  vocabWordCell: {
-    background: "#F5F0E680", border: "1px solid #1F3A5F14", borderRadius: 14,
-    padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
-  },
-  vocabWordCellOk: { background: "#6B8F711A", border: "1px solid #6B8F7155" },
-  vocabWordCellLearning: { background: "#C9A2271A", border: "1px solid #C9A22755" },
-  vocabWordMain: { display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" },
-  vocabWordKanji: { fontFamily: "'Shippori Mincho', serif", fontSize: 38, color: "#1F3A5F", fontWeight: 700, lineHeight: 1 },
-  vocabWordKana: { fontSize: 26, color: "#2B2B2B99" },
-  vocabWordSide: { textAlign: "right", flexShrink: 0 },
-  vocabWordMeaning: { fontSize: 16, color: "#BC4A3C", fontWeight: 600 },
-  vocabWordBox: { fontSize: 12, color: "#1F3A5F77", marginTop: 6, fontFamily: "monospace" },
-
-  vocabCategoryActions: { padding: "0 18px 14px" },
-  vocabCategoryPracticeBtn: {
-    background: "#BC4A3C14", color: "#BC4A3C", border: "1px solid #BC4A3C40",
-    borderRadius: 999, padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'Noto Sans TC', sans-serif",
-  },
-
-  emailBar: {
-    display: "flex", alignItems: "center", gap: 10, background: "#1F3A5F", borderRadius: 14,
-    padding: "12px 16px",
-  },
-  emailBarText: { color: "#F5F0E6", fontSize: 15, fontWeight: 600, flex: 1 },
-  emailEditBtn: {
-    background: "#BC4A3C", color: "#F5F0E6", border: "none", borderRadius: 999,
-    padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'Noto Sans TC', sans-serif",
-  },
-  emailInput: {
-    flex: 1, background: "#F5F0E6", border: "none", borderRadius: 10,
-    padding: "9px 12px", fontSize: 14, color: "#2B2B2B", boxSizing: "border-box",
-  },
-
-  weakSection: { background: "#FFFFFF", borderRadius: 18, padding: 22, border: "1px solid #1F3A5F1A", display: "flex", flexDirection: "column", gap: 14 },
-  weakTabRow: { display: "flex", gap: 8 },
-  weakEmpty: { fontSize: 14, color: "#2B2B2B77", margin: 0 },
-  weakAccuracy: { fontSize: 14, color: "#1F3A5F", fontWeight: 600, margin: 0 },
-  weakList: { display: "flex", flexDirection: "column", gap: 8, maxHeight: 420, overflowY: "auto" },
-  weakItem: {
-    display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10,
-    background: "#F5F0E680", borderRadius: 10, padding: "9px 12px",
-  },
-  weakItemMain: { fontFamily: "'Shippori Mincho', serif", fontSize: 15, color: "#1F3A5F", flexShrink: 0 },
-  weakItemMeta: { fontSize: 12, color: "#BC4A3C", fontWeight: 600, textAlign: "right" },
-};
-
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-
-</script>
-
-<script>
-// Local-storage backed shim of the Claude-artifact `window.storage` API,
-// so the app persists progress in a normal browser / Netlify deployment.
-window.storage = {
-  async get(key, shared) {
-    try {
-      const raw = localStorage.getItem((shared ? "shared:" : "priv:") + key);
-      if (raw === null) return null;
-      return { key, value: raw, shared: !!shared };
-    } catch (e) { return null; }
-  },
-  async set(key, value, shared) {
-    try {
-      localStorage.setItem((shared ? "shared:" : "priv:") + key, value);
-      return { key, value, shared: !!shared };
-    } catch (e) { return null; }
-  },
-  async delete(key, shared) {
-    try {
-      localStorage.removeItem((shared ? "shared:" : "priv:") + key);
-      return { key, deleted: true, shared: !!shared };
-    } catch (e) { return null; }
-  },
-  async list(prefix, shared) {
-    try {
-      const p = (shared ? "shared:" : "priv:") + (prefix || "");
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith(p)) keys.push(k.slice((shared ? "shared:" : "priv:").length));
-      }
-      return { keys, prefix, shared: !!shared };
-    } catch (e) { return null; }
-  },
-};
-
-function showBootError(label, err) {
-  var box = document.getElementById("boot-error");
-  var status = document.getElementById("boot-status");
-  if (status) status.style.display = "none";
-  box.style.display = "block";
-  var msg = (err && err.message) ? err.message : String(err);
-  var stack = (err && err.stack) ? err.stack : "";
-  box.textContent = label + "\n" + msg + (stack ? "\n\n" + stack : "");
-}
-
-window.addEventListener("error", function (e) {
-  showBootError("執行時發生錯誤：", e.error || e.message);
-});
-
-(function () {
-  var compiled;
-  try {
-    var sourceEl = document.getElementById("app-source");
-    var jsxSource = sourceEl.textContent;
-    compiled = Babel.transform(jsxSource, {
-      presets: [["react", { runtime: "classic" }]],
-      filename: "app.jsx",
-    }).code;
-  } catch (compileErr) {
-    showBootError("JSX 編譯失敗：", compileErr);
-    return;
-  }
-
-  var ran = false;
-  var lastErr = null;
-
-  try {
-    (0, eval)(compiled);
-    ran = true;
-  } catch (e1) {
-    lastErr = e1;
-  }
-
-  if (!ran) {
-    try {
-      var scriptEl = document.createElement("script");
-      scriptEl.textContent = compiled;
-      document.body.appendChild(scriptEl);
-      ran = true;
-    } catch (e2) {
-      lastErr = e2;
+      );
     }
-  }
 
-  if (!ran) {
-    showBootError(
-      "無法執行編譯後的程式。如果你是在 Claude 的檔案預覽視窗看到這個訊息，" +
-      "那個預覽環境本身會封鎖 eval / 動態腳本，跟實際部署到 Netlify 後的行為不同，" +
-      "請改成打開實際部署後的網址測試。若在 Netlify 網址上仍出現這個訊息，錯誤內容如下：",
-      lastErr
-    );
-    return;
-  }
-
-  var status = document.getElementById("boot-status");
-  if (status) status.style.display = "none";
-})();
-</script>
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
 </body>
 </html>
