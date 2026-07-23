@@ -327,7 +327,7 @@
           {activeTab === "kana" && (
             <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <h2 class="text-lg font-bold text-slate-800 mb-4">五十音基礎對照表</h2>
-              {kanaData && kanaData.hiraganaSeion && Array.isArray(kanaData.hiraganaSeion) && kanaData.hiraganaSeion.length > 0 ? (
+              {kanaData && kanaData.hiraganaSeion && Array.isArray(kanaData.hiraganaSeion) ? (
                 <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
                   {kanaData.hiraganaSeion.map((item, idx) => (
                     <div key={idx} class="bg-slate-50 border rounded-lg p-3 text-center">
