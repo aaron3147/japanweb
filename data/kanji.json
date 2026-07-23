@@ -1,98 +1,2440 @@
 [
-  { "kanji": "一", "strokes": 1, "onyomi": ["イチ", "イツ"], "kunyomi": ["ひと", "ひとつ"], "meaning": "一", "grade": "N5", "related_words": ["一人", "一日", "一月"] },
-  { "kanji": "二", "strokes": 2, "onyomi": ["ニ"], "kunyomi": ["ふた", "ふたつ"], "meaning": "二", "grade": "N5", "related_words": ["二人", "二月", "二十日"] },
-  { "kanji": "三", "strokes": 3, "onyomi": ["サン"], "kunyomi": ["み", "みっつ"], "meaning": "三", "grade": "N5", "related_words": ["三人", "三月", "三日"] },
-  { "kanji": "四", "strokes": 5, "onyomi": ["シ"], "kunyomi": ["よ", "よっつ", "よん"], "meaning": "四", "grade": "N5", "related_words": ["四人", "四月", "四日"] },
-  { "kanji": "五", "strokes": 4, "onyomi": ["ゴ"], "kunyomi": ["いつ", "いつつ"], "meaning": "五", "grade": "N5", "related_words": ["五人", "五月", "五日"] },
-  { "kanji": "六", "strokes": 4, "onyomi": ["ロク"], "kunyomi": ["む", "むっつ"], "meaning": "六", "grade": "N5", "related_words": ["六人", "六月", "六日"] },
-  { "kanji": "七", "strokes": 2, "onyomi": ["シチ"], "kunyomi": ["なな", "ななつ"], "meaning": "七", "grade": "N5", "related_words": ["七人", "七月", "七日"] },
-  { "kanji": "八", "strokes": 2, "onyomi": ["ハチ"], "kunyomi": ["や", "やっつ"], "meaning": "八", "grade": "N5", "related_words": ["八人", "八月", "八日"] },
-  { "kanji": "九", "strokes": 2, "onyomi": ["キュウ", "ク"], "kunyomi": ["ここの", "ここのつ"], "meaning": "九", "grade": "N5", "related_words": ["九人", "九月", "九日"] },
-  { "kanji": "十", "strokes": 2, "onyomi": ["ジュウ"], "kunyomi": ["とお", "と"], "meaning": "十", "grade": "N5", "related_words": ["十人", "十月", "十日"] },
-  { "kanji": "百", "strokes": 6, "onyomi": ["ヒャク"], "kunyomi": [], "meaning": "百", "grade": "N5", "related_words": ["百円", "三百", "八百"] },
-  { "kanji": "千", "strokes": 3, "onyomi": ["セン"], "kunyomi": ["ち"], "meaning": "千", "grade": "N5", "related_words": ["千円", "三千", "千葉"] },
-  { "kanji": "万", "strokes": 3, "onyomi": ["マン", "バン"], "kunyomi": [], "meaning": "萬", "grade": "N5", "related_words": ["一万円", "万一"] },
-  { "kanji": "円", "strokes": 4, "onyomi": ["エン"], "kunyomi": ["まるい"], "meaning": "日圓、圓形", "grade": "N5", "related_words": ["百円", "円形"] },
-  { "kanji": "日", "strokes": 4, "onyomi": ["ニチ", "ジツ"], "kunyomi": ["ひ", "-び", "か"], "meaning": "日、太陽、星期", "grade": "N5", "related_words": ["日曜日", "日本", "毎日"] },
-  { "kanji": "月", "strokes": 4, "onyomi": ["ゲツ", "ガツ"], "kunyomi": ["つき"], "meaning": "月亮、月份", "grade": "N5", "related_words": ["月曜日", "一月", "今月"] },
-  { "kanji": "火", "strokes": 4, "onyomi": ["カ"], "kunyomi": ["ひ", "ほ"], "meaning": "火", "grade": "N5", "related_words": ["火曜日", "火事", "花火"] },
-  { "kanji": "水", "strokes": 4, "onyomi": ["スイ"], "kunyomi": ["みず"], "meaning": "水", "grade": "N5", "related_words": ["水曜日", "水", "水泳"] },
-  { "kanji": "木", "strokes": 4, "onyomi": ["ボク", "モク"], "kunyomi": ["き"], "meaning": "樹木、木材", "grade": "N5", "related_words": ["木曜日", "木", "大木"] },
-  { "kanji": "金", "strokes": 8, "onyomi": ["キン", "コン"], "kunyomi": ["かね", "かな"], "meaning": "黃金、錢財", "grade": "N5", "related_words": ["金曜日", "お金", "金屬"] },
-  { "kanji": "土", "strokes": 3, "onyomi": ["ド", "ト"], "kunyomi": ["つち"], "meaning": "土地、泥土", "grade": "N5", "related_words": ["土曜日", "土", "土産"] },
-  { "kanji": "年", "strokes": 6, "onyomi": ["ネン"], "kunyomi": ["とし"], "meaning": "年份、年齡", "grade": "N5", "related_words": ["今年", "来年", "去年"] },
-  { "kanji": "時", "strokes": 10, "onyomi": ["ジ"], "kunyomi": ["とき"], "meaning": "時間、小時", "grade": "N5", "related_words": ["時間", "時計", "時々"] },
-  { "kanji": "分", "strokes": 4, "onyomi": ["ブン", "フン", "ブ"], "kunyomi": ["わける", "わかる"], "meaning": "分鐘、分開、明白", "grade": "N5", "related_words": ["五分", "半分", "分かる"] },
-  { "kanji": "半", "strokes": 5, "onyomi": ["ハン"], "kunyomi": ["なかば"], "meaning": "一半", "grade": "N5", "related_words": ["半分", "一時半"] },
-  { "kanji": "今", "strokes": 4, "onyomi": ["コン", "キン"], "kunyomi": ["いま"], "meaning": "現在", "grade": "N5", "related_words": ["今", "今日", "今月", "今年"] },
-  { "kanji": "朝", "strokes": 12, "onyomi": ["チョウ"], "kunyomi": ["あさ"], "meaning": "早晨", "grade": "N5", "related_words": ["朝", "今朝", "朝食"] },
-  { "kanji": "昼", "strokes": 9, "onyomi": ["チュウ"], "kunyomi": ["ひる"], "meaning": "白天、中午", "grade": "N5", "related_words": ["昼", "昼休み", "昼食"] },
-  { "kanji": "夜", "strokes": 8, "onyomi": ["ヤ"], "kunyomi": ["よる", "よ"], "meaning": "夜晚", "grade": "N5", "related_words": ["夜", "今夜", "夜中"] },
-  { "kanji": "前", "strokes": 9, "onyomi": ["ゼン"], "kunyomi": ["まえ"], "meaning": "前面、之前", "grade": "N5", "related_words": ["午前", "名前", "駅前"] },
-  { "kanji": "後", "strokes": 9, "onyomi": ["ゴ", "コウ"], "kunyomi": ["のち", "うしろ", "あと"], "meaning": "後面、之後", "grade": "N5", "related_words": ["午後", "後ろ", "最後"] },
-  { "kanji": "午", "strokes": 4, "onyomi": ["ゴ"], "kunyomi": [], "meaning": "午正（指正午）", "grade": "N5", "related_words": ["午前", "午後"] },
-  { "kanji": "方", "strokes": 4, "onyomi": ["ホウ"], "kunyomi": ["かた"], "meaning": "方向、人（尊敬）", "grade": "N5", "related_words": ["夕方", "あの方", "方法"] },
-  { "kanji": "上", "strokes": 3, "onyomi": ["ジョウ"], "kunyomi": ["うえ", "あがる", "のぼる"], "meaning": "上面、上升", "grade": "N5", "related_words": ["上", "上着", "上手"] },
-  { "kanji": "下", "strokes": 3, "onyomi": ["カ", "ゲ"], "kunyomi": ["した", "さがる", "くだる"], "meaning": "下面、下降", "grade": "N5", "related_words": ["下", "地下鉄", "下手"] },
-  { "kanji": "中", "strokes": 4, "onyomi": ["チュウ"], "kunyomi": ["なか"], "meaning": "中間、裡面", "grade": "N5", "related_words": ["中", "一日中", "中国"] },
-  { "kanji": "外", "strokes": 5, "onyomi": ["ガイ", "ゲ"], "kunyomi": ["そと", "ほか"], "meaning": "外面、外國", "grade": "N5", "related_words": ["外", "外国", "海外"] },
-  { "kanji": "右", "strokes": 5, "onyomi": ["ウ", "ユウ"], "kunyomi": ["みぎ"], "meaning": "右邊", "grade": "N5", "related_words": ["右", "右手", "右側"] },
-  { "kanji": "左", "strokes": 5, "onyomi": ["サ"], "kunyomi": ["ひだり"], "meaning": "左邊", "grade": "N5", "related_words": ["左", "左手", "左側"] },
-  { "kanji": "北", "strokes": 5, "onyomi": ["ホク"], "kunyomi": ["きた"], "meaning": "北方", "grade": "N5", "related_words": ["北", "北海道", "南北"] },
-  { "kanji": "南", "strokes": 9, "onyomi": ["ナン"], "kunyomi": ["みなみ"], "meaning": "南方", "grade": "N5", "related_words": ["南", "東南", "南口"] },
-  { "kanji": "東", "strokes": 8, "onyomi": ["トウ"], "kunyomi": ["ひがし"], "meaning": "東方", "grade": "N5", "related_words": ["東", "東京", "東口"] },
-  { "kanji": "西", "strokes": 6, "onyomi": ["セイ", "サイ"], "kunyomi": ["にし"], "meaning": "西方", "grade": "N5", "related_words": ["西", "西方", "西口"] },
-  { "kanji": "山", "strokes": 3, "onyomi": ["サン"], "kunyomi": ["やま"], "meaning": "山脈", "grade": "N5", "related_words": ["山", "富士山", "火山"] },
-  { "kanji": "川", "strokes": 3, "onyomi": ["セン"], "kunyomi": ["かわ"], "meaning": "河流", "grade": "N5", "related_words": ["川", "小川", "ナイル川"] },
-  { "kanji": "天", "strokes": 4, "onyomi": ["テン"], "kunyomi": ["あまつ"], "meaning": "天空、天候", "grade": "N5", "related_words": ["天気", "天国", "天才"] },
-  { "kanji": "気", "strokes": 6, "onyomi": ["キ", "ケ"], "kunyomi": [], "meaning": "氣體、精神、天氣", "grade": "N5", "related_words": ["天気", "電気", "気持ち"] },
-  { "kanji": "雨", "strokes": 8, "onyomi": ["ウ"], "kunyomi": ["あめ", "あま"], "meaning": "雨水", "grade": "N5", "related_words": ["雨", "大雨", "雨天"] },
-  { "kanji": "花", "strokes": 7, "onyomi": ["カ"], "kunyomi": ["はな"], "meaning": "花朵", "grade": "N5", "related_words": ["花", "花火", "花瓶"] },
-  { "kanji": "人", "strokes": 2, "onyomi": ["ジン", "ニン"], "kunyomi": ["ひと"], "meaning": "人", "grade": "N5", "related_words": ["人", "日本人", "一人"] },
-  { "kanji": "子", "strokes": 3, "onyomi": ["シ", "ス"], "kunyomi": ["こ"], "meaning": "小孩、女子", "grade": "N5", "related_words": ["子供", "女子", "電子"] },
-  { "kanji": "女", "strokes": 3, "onyomi": ["ジョ", "ニョ"], "kunyomi": ["おんな", "め"], "meaning": "女性", "grade": "N5", "related_words": ["女", "女の子", "女性"] },
-  { "kanji": "男", "strokes": 7, "onyomi": ["ダン", "ナン"], "kunyomi": ["おとこ"], "meaning": "男性", "grade": "N5", "related_words": ["男", "男の子", "男性"] },
-  { "kanji": "目", "strokes": 5, "onyomi": ["モク"], "kunyomi": ["め"], "meaning": "眼睛、項目", "grade": "N5", "related_words": ["目", "目的", "一日目"] },
-  { "kanji": "口", "strokes": 3, "onyomi": ["コウ", "ク"], "kunyomi": ["くち"], "meaning": "嘴巴、出入口", "grade": "N5", "related_words": ["口", "入口", "出口"] },
-  { "kanji": "手", "strokes": 4, "onyomi": ["シュ"], "kunyomi": ["て"], "meaning": "手", "grade": "N5", "related_words": ["手", "上手", "下手", "手紙"] },
-  { "kanji": "足", "strokes": 7, "onyomi": ["ソク"], "kunyomi": ["あし", "たりる"], "meaning": "腳、足夠", "grade": "N5", "related_words": ["足", "一足", "足りる"] },
-  { "kanji": "耳", "strokes": 6, "onyomi": ["ジ"], "kunyomi": ["みみ"], "meaning": "耳朵", "grade": "N5", "related_words": ["耳"] },
-  { "kanji": "大", "strokes": 3, "onyomi": ["ダイ", "タイ"], "kunyomi": ["おおきい"], "meaning": "大、非常", "grade": "N5", "related_words": ["大きい", "大学", "大切"] },
-  { "kanji": "小", "strokes": 3, "onyomi": ["ショウ"], "kunyomi": ["ちいさい", "こ"], "meaning": "小", "grade": "N5", "related_words": ["小さい", "小学校", "小川"] },
-  { "kanji": "高", "strokes": 10, "onyomi": ["コウ"], "kunyomi": ["たかい"], "meaning": "高、昂貴", "grade": "N5", "related_words": ["高い", "高校", "最高"] },
-  { "kanji": "安", "strokes": 6, "onyomi": ["アン"], "kunyomi": ["やすい"], "meaning": "便宜、安心", "grade": "N5", "related_words": ["安い", "安心", "安全"] },
-  { "kanji": "新", "strokes": 13, "onyomi": ["シン"], "kunyomi": ["あたらしい"], "meaning": "新的", "grade": "N5", "related_words": ["新しい", "新聞", "新幹線"] },
-  { "kanji": "古", "strokes": 5, "onyomi": ["コ"], "kunyomi": ["ふるい"], "meaning": "舊的、古老", "grade": "N5", "related_words": ["古い", "中古"] },
-  { "kanji": "多", "strokes": 6, "onyomi": ["タ"], "kunyomi": ["おおい"], "meaning": "許多", "grade": "N5", "related_words": ["多い", "多分"] },
-  { "kanji": "少", "strokes": 4, "onyomi": ["ショウ"], "kunyomi": ["すくない", "すこし"], "meaning": "少、稍微", "grade": "N5", "related_words": ["少ない", "少し", "少女"] },
-  { "kanji": "長", "strokes": 8, "onyomi": ["チョウ"], "kunyomi": ["ながい"], "meaning": "長、首長", "grade": "N5", "related_words": ["長い", "社長", "部長"] },
-  { "kanji": "白", "strokes": 5, "onyomi": ["ハク"], "kunyomi": ["しろ", "しろい"], "meaning": "白色", "grade": "N5", "related_words": ["白", "白い", "面白い"] },
-  { "kanji": "赤", "strokes": 7, "onyomi": ["セキ"], "kunyomi": ["あか", "あかい"], "meaning": "紅色", "grade": "N5", "related_words": ["赤", "赤い", "赤ちゃん"] },
-  { "kanji": "青", "strokes": 8, "onyomi": ["セイ"], "kunyomi": ["あお", "あおい"], "meaning": "藍色、青色", "grade": "N5", "related_words": ["青", "青い", "青年"] },
-  { "kanji": "行", "strokes": 6, "onyomi": ["コウ", "ギョウ"], "kunyomi": ["いく", "おこなう"], "meaning": "去、實施", "grade": "N5", "related_words": ["行く", "銀行", "旅行"] },
-  { "kanji": "来", "strokes": 7, "onyomi": ["ライ"], "kunyomi": ["くる", "きたる"], "meaning": "來", "grade": "N5", "related_words": ["来る", "来年", "来週"] },
-  { "kanji": "出", "strokes": 5, "onyomi": ["シュツ"], "kunyomi": ["でる", "だす"], "meaning": "出去、拿出", "grade": "N5", "related_words": ["出る", "出す", "出口"] },
-  { "kanji": "入", "strokes": 2, "onyomi": ["ニュウ"], "kunyomi": ["はい・る", "い・れる"], "meaning": "進入、放入", "grade": "N5", "related_words": ["入る", "入れる", "入口"] },
-  { "kanji": "食", "strokes": 9, "onyomi": ["ショク"], "kunyomi": ["たべる"], "meaning": "吃、食物", "grade": "N5", "related_words": ["食べる", "食堂", "食事"] },
-  { "kanji": "飲", "strokes": 12, "onyomi": ["イン"], "kunyomi": ["のむ"], "meaning": "喝", "grade": "N5", "related_words": ["飲む", "飲み物", "飲料"] },
-  { "kanji": "見", "strokes": 7, "onyomi": ["ケン"], "kunyomi": ["みる"], "meaning": "看見", "grade": "N5", "related_words": ["見る", "意見", "見物"] },
-  { "kanji": "聞", "strokes": 14, "onyomi": ["ブン", "モン"], "kunyomi": ["きく"], "meaning": "聽、新聞", "grade": "N5", "related_words": ["聞く", "新聞"] },
-  { "kanji": "書", "strokes": 10, "onyomi": ["ショ"], "kunyomi": ["かく"], "meaning": "書寫、書籍", "grade": "N5", "related_words": ["書く", "辞書", "図書館"] },
-  { "kanji": "読", "strokes": 14, "onyomi": ["ドク"], "kunyomi": ["よむ"], "meaning": "閱讀", "grade": "N5", "related_words": ["読む", "読書"] },
-  { "kanji": "話", "strokes": 13, "onyomi": ["ワ"], "kunyomi": ["はなす", "はなし"], "meaning": "說話、對話", "grade": "N5", "related_words": ["話す", "話", "電話", "会話"] },
-  { "kanji": "買", "strokes": 12, "onyomi": ["バイ"], "kunyomi": ["かう"], "meaning": "購買", "grade": "N5", "related_words": ["買う", "買い物"] },
-  { "kanji": "立", "strokes": 5, "onyomi": ["リツ"], "kunyomi": ["たつ"], "meaning": "站立、建立", "grade": "N5", "related_words": ["立つ", "国立"] },
-  { "kanji": "休", "strokes": 6, "onyomi": ["キュウ"], "kunyomi": ["やすむ"], "meaning": "休息", "grade": "N5", "related_words": ["休む", "休み", "休日"] },
-  { "kanji": "校", "strokes": 10, "onyomi": ["コウ"], "kunyomi": [], "meaning": "學校", "grade": "N5", "related_words": ["学校", "高校", "小学校"] },
-  { "kanji": "先", "strokes": 6, "onyomi": ["セン"], "kunyomi": ["さき"], "meaning": "先前、先生", "grade": "N5", "related_words": ["先生", "先週", "先月"] },
-  { "kanji": "生", "strokes": 5, "onyomi": ["セイ", "ショウ"], "kunyomi": ["いきる", "うまれる", "なま"], "meaning": "生命、出生、學生", "grade": "N5", "related_words": ["先生", "学生", "一生懸命"] },
-  { "kanji": "友", "strokes": 4, "onyomi": ["ユウ"], "kunyomi": ["とも"], "meaning": "朋友", "grade": "N5", "related_words": ["友達", "友人"] },
-  { "kanji": "名", "strokes": 6, "onyomi": ["メイ", "ミョウ"], "kunyomi": ["な"], "meaning": "名字、著名", "grade": "N5", "related_words": ["名前", "有名"] },
-  { "kanji": "本", "strokes": 5, "onyomi": ["ホン"], "kunyomi": ["もと"], "meaning": "書本、根基", "grade": "N5", "related_words": ["本", "日本", "山本"] },
-  { "kanji": "国", "strokes": 8, "onyomi": ["コク"], "kunyomi": ["くに"], "meaning": "國家", "grade": "N5", "related_words": ["国", "外国", "中国"] },
-  { "kanji": "車", "strokes": 7, "onyomi": ["シャ"], "kunyomi": ["くるま"], "meaning": "車輛", "grade": "N5", "related_words": ["車", "電車", "自動車"] },
-  { "kanji": "語", "strokes": 14, "onyomi": ["ゴ"], "kunyomi": ["かたる"], "meaning": "語言、敘述", "grade": "N5", "related_words": ["日本語", "英語", "語学"] },
-  { "kanji": "父", "strokes": 4, "onyomi": ["フ"], "kunyomi": ["ちち"], "meaning": "父親", "grade": "N5", "related_words": ["父", "お父さん"] },
-  { "kanji": "母", "strokes": 5, "onyomi": ["ボ"], "kunyomi": ["はは"], "meaning": "母親", "grade": "N5", "related_words": ["母", "お母さん"] },
-  { "kanji": "毎", "strokes": 6, "onyomi": ["マイ"], "kunyomi": [], "meaning": "每、常常", "grade": "N5", "related_words": ["毎日", "毎週", "毎月", "毎年"] }
+  {
+    "kanji": "一",
+    "strokes": 1,
+    "onyomi": [
+      "イチ",
+      "イツ"
+    ],
+    "kunyomi": [
+      "ひと",
+      "ひとつ"
+    ],
+    "meaning": "一",
+    "grade": "N5",
+    "related_words": [
+      "一人",
+      "一日",
+      "一月"
+    ]
+  },
+  {
+    "kanji": "二",
+    "strokes": 2,
+    "onyomi": [
+      "ニ"
+    ],
+    "kunyomi": [
+      "ふた",
+      "ふたつ"
+    ],
+    "meaning": "二",
+    "grade": "N5",
+    "related_words": [
+      "二人",
+      "二月",
+      "二十日"
+    ]
+  },
+  {
+    "kanji": "三",
+    "strokes": 3,
+    "onyomi": [
+      "サン"
+    ],
+    "kunyomi": [
+      "み",
+      "みっつ"
+    ],
+    "meaning": "三",
+    "grade": "N5",
+    "related_words": [
+      "三人",
+      "三月",
+      "三日"
+    ]
+  },
+  {
+    "kanji": "四",
+    "strokes": 5,
+    "onyomi": [
+      "シ"
+    ],
+    "kunyomi": [
+      "よ",
+      "よっつ",
+      "よん"
+    ],
+    "meaning": "四",
+    "grade": "N5",
+    "related_words": [
+      "四人",
+      "四月",
+      "四日"
+    ]
+  },
+  {
+    "kanji": "五",
+    "strokes": 4,
+    "onyomi": [
+      "ゴ"
+    ],
+    "kunyomi": [
+      "いつ",
+      "いつつ"
+    ],
+    "meaning": "五",
+    "grade": "N5",
+    "related_words": [
+      "五人",
+      "五月",
+      "五日"
+    ]
+  },
+  {
+    "kanji": "六",
+    "strokes": 4,
+    "onyomi": [
+      "ロク"
+    ],
+    "kunyomi": [
+      "む",
+      "むっつ"
+    ],
+    "meaning": "六",
+    "grade": "N5",
+    "related_words": [
+      "六人",
+      "六月",
+      "六日"
+    ]
+  },
+  {
+    "kanji": "七",
+    "strokes": 2,
+    "onyomi": [
+      "シチ"
+    ],
+    "kunyomi": [
+      "なな",
+      "ななつ"
+    ],
+    "meaning": "七",
+    "grade": "N5",
+    "related_words": [
+      "七人",
+      "七月",
+      "七日"
+    ]
+  },
+  {
+    "kanji": "八",
+    "strokes": 2,
+    "onyomi": [
+      "ハチ"
+    ],
+    "kunyomi": [
+      "や",
+      "やっつ"
+    ],
+    "meaning": "八",
+    "grade": "N5",
+    "related_words": [
+      "八人",
+      "八月",
+      "八日"
+    ]
+  },
+  {
+    "kanji": "九",
+    "strokes": 2,
+    "onyomi": [
+      "キュウ",
+      "ク"
+    ],
+    "kunyomi": [
+      "ここの",
+      "ここのつ"
+    ],
+    "meaning": "九",
+    "grade": "N5",
+    "related_words": [
+      "九人",
+      "九月",
+      "九日"
+    ]
+  },
+  {
+    "kanji": "十",
+    "strokes": 2,
+    "onyomi": [
+      "ジュウ"
+    ],
+    "kunyomi": [
+      "とお",
+      "と"
+    ],
+    "meaning": "十",
+    "grade": "N5",
+    "related_words": [
+      "十人",
+      "十月",
+      "十日"
+    ]
+  },
+  {
+    "kanji": "百",
+    "strokes": 6,
+    "onyomi": [
+      "ヒャク"
+    ],
+    "kunyomi": [],
+    "meaning": "百",
+    "grade": "N5",
+    "related_words": [
+      "百円",
+      "三百",
+      "八百"
+    ]
+  },
+  {
+    "kanji": "千",
+    "strokes": 3,
+    "onyomi": [
+      "セン"
+    ],
+    "kunyomi": [
+      "ち"
+    ],
+    "meaning": "千",
+    "grade": "N5",
+    "related_words": [
+      "千円",
+      "三千",
+      "千葉"
+    ]
+  },
+  {
+    "kanji": "万",
+    "strokes": 3,
+    "onyomi": [
+      "マン",
+      "バン"
+    ],
+    "kunyomi": [],
+    "meaning": "萬",
+    "grade": "N5",
+    "related_words": [
+      "一万円",
+      "万一"
+    ]
+  },
+  {
+    "kanji": "円",
+    "strokes": 4,
+    "onyomi": [
+      "エン"
+    ],
+    "kunyomi": [
+      "まるい"
+    ],
+    "meaning": "日圓、圓形",
+    "grade": "N5",
+    "related_words": [
+      "百円",
+      "円形"
+    ]
+  },
+  {
+    "kanji": "日",
+    "strokes": 4,
+    "onyomi": [
+      "ニチ",
+      "ジツ"
+    ],
+    "kunyomi": [
+      "ひ",
+      "-び",
+      "か"
+    ],
+    "meaning": "日、太陽、星期",
+    "grade": "N5",
+    "related_words": [
+      "日曜日",
+      "日本",
+      "毎日"
+    ]
+  },
+  {
+    "kanji": "月",
+    "strokes": 4,
+    "onyomi": [
+      "ゲツ",
+      "ガツ"
+    ],
+    "kunyomi": [
+      "つき"
+    ],
+    "meaning": "月亮、月份",
+    "grade": "N5",
+    "related_words": [
+      "月曜日",
+      "一月",
+      "今月"
+    ]
+  },
+  {
+    "kanji": "火",
+    "strokes": 4,
+    "onyomi": [
+      "カ"
+    ],
+    "kunyomi": [
+      "ひ",
+      "ほ"
+    ],
+    "meaning": "火",
+    "grade": "N5",
+    "related_words": [
+      "火曜日",
+      "火事",
+      "花火"
+    ]
+  },
+  {
+    "kanji": "水",
+    "strokes": 4,
+    "onyomi": [
+      "スイ"
+    ],
+    "kunyomi": [
+      "みず"
+    ],
+    "meaning": "水",
+    "grade": "N5",
+    "related_words": [
+      "水曜日",
+      "水",
+      "水泳"
+    ]
+  },
+  {
+    "kanji": "木",
+    "strokes": 4,
+    "onyomi": [
+      "ボク",
+      "モク"
+    ],
+    "kunyomi": [
+      "き"
+    ],
+    "meaning": "樹木、木材",
+    "grade": "N5",
+    "related_words": [
+      "木曜日",
+      "木",
+      "大木"
+    ]
+  },
+  {
+    "kanji": "金",
+    "strokes": 8,
+    "onyomi": [
+      "キン",
+      "コン"
+    ],
+    "kunyomi": [
+      "かね",
+      "かな"
+    ],
+    "meaning": "黃金、錢財",
+    "grade": "N5",
+    "related_words": [
+      "金曜日",
+      "お金",
+      "金屬"
+    ]
+  },
+  {
+    "kanji": "土",
+    "strokes": 3,
+    "onyomi": [
+      "ド",
+      "ト"
+    ],
+    "kunyomi": [
+      "つち"
+    ],
+    "meaning": "土地、泥土",
+    "grade": "N5",
+    "related_words": [
+      "土曜日",
+      "土",
+      "土産"
+    ]
+  },
+  {
+    "kanji": "年",
+    "strokes": 6,
+    "onyomi": [
+      "ネン"
+    ],
+    "kunyomi": [
+      "とし"
+    ],
+    "meaning": "年份、年齡",
+    "grade": "N5",
+    "related_words": [
+      "今年",
+      "来年",
+      "去年"
+    ]
+  },
+  {
+    "kanji": "時",
+    "strokes": 10,
+    "onyomi": [
+      "ジ"
+    ],
+    "kunyomi": [
+      "とき"
+    ],
+    "meaning": "時間、小時",
+    "grade": "N5",
+    "related_words": [
+      "時間",
+      "時計",
+      "時々"
+    ]
+  },
+  {
+    "kanji": "分",
+    "strokes": 4,
+    "onyomi": [
+      "ブン",
+      "フン",
+      "ブ"
+    ],
+    "kunyomi": [
+      "わける",
+      "わかる"
+    ],
+    "meaning": "分鐘、分開、明白",
+    "grade": "N5",
+    "related_words": [
+      "五分",
+      "半分",
+      "分かる"
+    ]
+  },
+  {
+    "kanji": "半",
+    "strokes": 5,
+    "onyomi": [
+      "ハン"
+    ],
+    "kunyomi": [
+      "なかば"
+    ],
+    "meaning": "一半",
+    "grade": "N5",
+    "related_words": [
+      "半分",
+      "一時半"
+    ]
+  },
+  {
+    "kanji": "今",
+    "strokes": 4,
+    "onyomi": [
+      "コン",
+      "キン"
+    ],
+    "kunyomi": [
+      "いま"
+    ],
+    "meaning": "現在",
+    "grade": "N5",
+    "related_words": [
+      "今",
+      "今日",
+      "今月",
+      "今年"
+    ]
+  },
+  {
+    "kanji": "朝",
+    "strokes": 12,
+    "onyomi": [
+      "チョウ"
+    ],
+    "kunyomi": [
+      "あさ"
+    ],
+    "meaning": "早晨",
+    "grade": "N5",
+    "related_words": [
+      "朝",
+      "今朝",
+      "朝食"
+    ]
+  },
+  {
+    "kanji": "昼",
+    "strokes": 9,
+    "onyomi": [
+      "チュウ"
+    ],
+    "kunyomi": [
+      "ひる"
+    ],
+    "meaning": "白天、中午",
+    "grade": "N5",
+    "related_words": [
+      "昼",
+      "昼休み",
+      "昼食"
+    ]
+  },
+  {
+    "kanji": "夜",
+    "strokes": 8,
+    "onyomi": [
+      "ヤ"
+    ],
+    "kunyomi": [
+      "よる",
+      "よ"
+    ],
+    "meaning": "夜晚",
+    "grade": "N5",
+    "related_words": [
+      "夜",
+      "今夜",
+      "夜中"
+    ]
+  },
+  {
+    "kanji": "前",
+    "strokes": 9,
+    "onyomi": [
+      "ゼン"
+    ],
+    "kunyomi": [
+      "まえ"
+    ],
+    "meaning": "前面、之前",
+    "grade": "N5",
+    "related_words": [
+      "午前",
+      "名前",
+      "駅前"
+    ]
+  },
+  {
+    "kanji": "後",
+    "strokes": 9,
+    "onyomi": [
+      "ゴ",
+      "コウ"
+    ],
+    "kunyomi": [
+      "のち",
+      "うしろ",
+      "あと"
+    ],
+    "meaning": "後面、之後",
+    "grade": "N5",
+    "related_words": [
+      "午後",
+      "後ろ",
+      "最後"
+    ]
+  },
+  {
+    "kanji": "午",
+    "strokes": 4,
+    "onyomi": [
+      "ゴ"
+    ],
+    "kunyomi": [],
+    "meaning": "午正（指正午）",
+    "grade": "N5",
+    "related_words": [
+      "午前",
+      "午後"
+    ]
+  },
+  {
+    "kanji": "方",
+    "strokes": 4,
+    "onyomi": [
+      "ホウ"
+    ],
+    "kunyomi": [
+      "かた"
+    ],
+    "meaning": "方向、人（尊敬）",
+    "grade": "N5",
+    "related_words": [
+      "夕方",
+      "あの方",
+      "方法"
+    ]
+  },
+  {
+    "kanji": "上",
+    "strokes": 3,
+    "onyomi": [
+      "ジョウ"
+    ],
+    "kunyomi": [
+      "うえ",
+      "あがる",
+      "のぼる"
+    ],
+    "meaning": "上面、上升",
+    "grade": "N5",
+    "related_words": [
+      "上",
+      "上着",
+      "上手"
+    ]
+  },
+  {
+    "kanji": "下",
+    "strokes": 3,
+    "onyomi": [
+      "カ",
+      "ゲ"
+    ],
+    "kunyomi": [
+      "した",
+      "さがる",
+      "くだる"
+    ],
+    "meaning": "下面、下降",
+    "grade": "N5",
+    "related_words": [
+      "下",
+      "地下鉄",
+      "下手"
+    ]
+  },
+  {
+    "kanji": "中",
+    "strokes": 4,
+    "onyomi": [
+      "チュウ"
+    ],
+    "kunyomi": [
+      "なか"
+    ],
+    "meaning": "中間、裡面",
+    "grade": "N5",
+    "related_words": [
+      "中",
+      "一日中",
+      "中国"
+    ]
+  },
+  {
+    "kanji": "外",
+    "strokes": 5,
+    "onyomi": [
+      "ガイ",
+      "ゲ"
+    ],
+    "kunyomi": [
+      "そと",
+      "ほか"
+    ],
+    "meaning": "外面、外國",
+    "grade": "N5",
+    "related_words": [
+      "外",
+      "外国",
+      "海外"
+    ]
+  },
+  {
+    "kanji": "右",
+    "strokes": 5,
+    "onyomi": [
+      "ウ",
+      "ユウ"
+    ],
+    "kunyomi": [
+      "みぎ"
+    ],
+    "meaning": "右邊",
+    "grade": "N5",
+    "related_words": [
+      "右",
+      "右手",
+      "右側"
+    ]
+  },
+  {
+    "kanji": "左",
+    "strokes": 5,
+    "onyomi": [
+      "サ"
+    ],
+    "kunyomi": [
+      "ひだり"
+    ],
+    "meaning": "左邊",
+    "grade": "N5",
+    "related_words": [
+      "左",
+      "左手",
+      "左側"
+    ]
+  },
+  {
+    "kanji": "北",
+    "strokes": 5,
+    "onyomi": [
+      "ホク"
+    ],
+    "kunyomi": [
+      "きた"
+    ],
+    "meaning": "北方",
+    "grade": "N5",
+    "related_words": [
+      "北",
+      "北海道",
+      "南北"
+    ]
+  },
+  {
+    "kanji": "南",
+    "strokes": 9,
+    "onyomi": [
+      "ナン"
+    ],
+    "kunyomi": [
+      "みなみ"
+    ],
+    "meaning": "南方",
+    "grade": "N5",
+    "related_words": [
+      "南",
+      "東南",
+      "南口"
+    ]
+  },
+  {
+    "kanji": "東",
+    "strokes": 8,
+    "onyomi": [
+      "トウ"
+    ],
+    "kunyomi": [
+      "ひがし"
+    ],
+    "meaning": "東方",
+    "grade": "N5",
+    "related_words": [
+      "東",
+      "東京",
+      "東口"
+    ]
+  },
+  {
+    "kanji": "西",
+    "strokes": 6,
+    "onyomi": [
+      "セイ",
+      "サイ"
+    ],
+    "kunyomi": [
+      "にし"
+    ],
+    "meaning": "西方",
+    "grade": "N5",
+    "related_words": [
+      "西",
+      "西方",
+      "西口"
+    ]
+  },
+  {
+    "kanji": "山",
+    "strokes": 3,
+    "onyomi": [
+      "サン"
+    ],
+    "kunyomi": [
+      "やま"
+    ],
+    "meaning": "山脈",
+    "grade": "N5",
+    "related_words": [
+      "山",
+      "富士山",
+      "火山"
+    ]
+  },
+  {
+    "kanji": "川",
+    "strokes": 3,
+    "onyomi": [
+      "セン"
+    ],
+    "kunyomi": [
+      "かわ"
+    ],
+    "meaning": "河流",
+    "grade": "N5",
+    "related_words": [
+      "川",
+      "小川",
+      "ナイル川"
+    ]
+  },
+  {
+    "kanji": "天",
+    "strokes": 4,
+    "onyomi": [
+      "テン"
+    ],
+    "kunyomi": [
+      "あまつ"
+    ],
+    "meaning": "天空、天候",
+    "grade": "N5",
+    "related_words": [
+      "天気",
+      "天国",
+      "天才"
+    ]
+  },
+  {
+    "kanji": "気",
+    "strokes": 6,
+    "onyomi": [
+      "キ",
+      "ケ"
+    ],
+    "kunyomi": [],
+    "meaning": "氣體、精神、天氣",
+    "grade": "N5",
+    "related_words": [
+      "天気",
+      "電気",
+      "気持ち"
+    ]
+  },
+  {
+    "kanji": "雨",
+    "strokes": 8,
+    "onyomi": [
+      "ウ"
+    ],
+    "kunyomi": [
+      "あめ",
+      "あま"
+    ],
+    "meaning": "雨水",
+    "grade": "N5",
+    "related_words": [
+      "雨",
+      "大雨",
+      "雨天"
+    ]
+  },
+  {
+    "kanji": "花",
+    "strokes": 7,
+    "onyomi": [
+      "カ"
+    ],
+    "kunyomi": [
+      "はな"
+    ],
+    "meaning": "花朵",
+    "grade": "N5",
+    "related_words": [
+      "花",
+      "花火",
+      "花瓶"
+    ]
+  },
+  {
+    "kanji": "人",
+    "strokes": 2,
+    "onyomi": [
+      "ジン",
+      "ニン"
+    ],
+    "kunyomi": [
+      "ひと"
+    ],
+    "meaning": "人",
+    "grade": "N5",
+    "related_words": [
+      "人",
+      "日本人",
+      "一人"
+    ]
+  },
+  {
+    "kanji": "子",
+    "strokes": 3,
+    "onyomi": [
+      "シ",
+      "ス"
+    ],
+    "kunyomi": [
+      "こ"
+    ],
+    "meaning": "小孩、女子",
+    "grade": "N5",
+    "related_words": [
+      "子供",
+      "女子",
+      "電子"
+    ]
+  },
+  {
+    "kanji": "女",
+    "strokes": 3,
+    "onyomi": [
+      "ジョ",
+      "ニョ"
+    ],
+    "kunyomi": [
+      "おんな",
+      "め"
+    ],
+    "meaning": "女性",
+    "grade": "N5",
+    "related_words": [
+      "女",
+      "女の子",
+      "女性"
+    ]
+  },
+  {
+    "kanji": "男",
+    "strokes": 7,
+    "onyomi": [
+      "ダン",
+      "ナン"
+    ],
+    "kunyomi": [
+      "おとこ"
+    ],
+    "meaning": "男性",
+    "grade": "N5",
+    "related_words": [
+      "男",
+      "男の子",
+      "男性"
+    ]
+  },
+  {
+    "kanji": "目",
+    "strokes": 5,
+    "onyomi": [
+      "モク"
+    ],
+    "kunyomi": [
+      "め"
+    ],
+    "meaning": "眼睛、項目",
+    "grade": "N5",
+    "related_words": [
+      "目",
+      "目的",
+      "一日目"
+    ]
+  },
+  {
+    "kanji": "口",
+    "strokes": 3,
+    "onyomi": [
+      "コウ",
+      "ク"
+    ],
+    "kunyomi": [
+      "くち"
+    ],
+    "meaning": "嘴巴、出入口",
+    "grade": "N5",
+    "related_words": [
+      "口",
+      "入口",
+      "出口"
+    ]
+  },
+  {
+    "kanji": "手",
+    "strokes": 4,
+    "onyomi": [
+      "シュ"
+    ],
+    "kunyomi": [
+      "て"
+    ],
+    "meaning": "手",
+    "grade": "N5",
+    "related_words": [
+      "手",
+      "上手",
+      "下手",
+      "手紙"
+    ]
+  },
+  {
+    "kanji": "足",
+    "strokes": 7,
+    "onyomi": [
+      "ソク"
+    ],
+    "kunyomi": [
+      "あし",
+      "たりる"
+    ],
+    "meaning": "腳、足夠",
+    "grade": "N5",
+    "related_words": [
+      "足",
+      "一足",
+      "足りる"
+    ]
+  },
+  {
+    "kanji": "耳",
+    "strokes": 6,
+    "onyomi": [
+      "ジ"
+    ],
+    "kunyomi": [
+      "みみ"
+    ],
+    "meaning": "耳朵",
+    "grade": "N5",
+    "related_words": [
+      "耳"
+    ]
+  },
+  {
+    "kanji": "大",
+    "strokes": 3,
+    "onyomi": [
+      "ダイ",
+      "タイ"
+    ],
+    "kunyomi": [
+      "おおきい"
+    ],
+    "meaning": "大、非常",
+    "grade": "N5",
+    "related_words": [
+      "大きい",
+      "大学",
+      "大切"
+    ]
+  },
+  {
+    "kanji": "小",
+    "strokes": 3,
+    "onyomi": [
+      "ショウ"
+    ],
+    "kunyomi": [
+      "ちいさい",
+      "こ"
+    ],
+    "meaning": "小",
+    "grade": "N5",
+    "related_words": [
+      "小さい",
+      "小学校",
+      "小川"
+    ]
+  },
+  {
+    "kanji": "高",
+    "strokes": 10,
+    "onyomi": [
+      "コウ"
+    ],
+    "kunyomi": [
+      "たかい"
+    ],
+    "meaning": "高、昂貴",
+    "grade": "N5",
+    "related_words": [
+      "高い",
+      "高校",
+      "最高"
+    ]
+  },
+  {
+    "kanji": "安",
+    "strokes": 6,
+    "onyomi": [
+      "アン"
+    ],
+    "kunyomi": [
+      "やすい"
+    ],
+    "meaning": "便宜、安心",
+    "grade": "N5",
+    "related_words": [
+      "安い",
+      "安心",
+      "安全"
+    ]
+  },
+  {
+    "kanji": "新",
+    "strokes": 13,
+    "onyomi": [
+      "シン"
+    ],
+    "kunyomi": [
+      "あたらしい"
+    ],
+    "meaning": "新的",
+    "grade": "N5",
+    "related_words": [
+      "新しい",
+      "新聞",
+      "新幹線"
+    ]
+  },
+  {
+    "kanji": "古",
+    "strokes": 5,
+    "onyomi": [
+      "コ"
+    ],
+    "kunyomi": [
+      "ふるい"
+    ],
+    "meaning": "舊的、古老",
+    "grade": "N5",
+    "related_words": [
+      "古い",
+      "中古"
+    ]
+  },
+  {
+    "kanji": "多",
+    "strokes": 6,
+    "onyomi": [
+      "タ"
+    ],
+    "kunyomi": [
+      "おおい"
+    ],
+    "meaning": "許多",
+    "grade": "N5",
+    "related_words": [
+      "多い",
+      "多分"
+    ]
+  },
+  {
+    "kanji": "少",
+    "strokes": 4,
+    "onyomi": [
+      "ショウ"
+    ],
+    "kunyomi": [
+      "すくない",
+      "すこし"
+    ],
+    "meaning": "少、稍微",
+    "grade": "N5",
+    "related_words": [
+      "少ない",
+      "少し",
+      "少女"
+    ]
+  },
+  {
+    "kanji": "長",
+    "strokes": 8,
+    "onyomi": [
+      "チョウ"
+    ],
+    "kunyomi": [
+      "ながい"
+    ],
+    "meaning": "長、首長",
+    "grade": "N5",
+    "related_words": [
+      "長い",
+      "社長",
+      "部長"
+    ]
+  },
+  {
+    "kanji": "白",
+    "strokes": 5,
+    "onyomi": [
+      "ハク"
+    ],
+    "kunyomi": [
+      "しろ",
+      "しろい"
+    ],
+    "meaning": "白色",
+    "grade": "N5",
+    "related_words": [
+      "白",
+      "白い",
+      "面白い"
+    ]
+  },
+  {
+    "kanji": "赤",
+    "strokes": 7,
+    "onyomi": [
+      "セキ"
+    ],
+    "kunyomi": [
+      "あか",
+      "あかい"
+    ],
+    "meaning": "紅色",
+    "grade": "N5",
+    "related_words": [
+      "赤",
+      "赤い",
+      "赤ちゃん"
+    ]
+  },
+  {
+    "kanji": "青",
+    "strokes": 8,
+    "onyomi": [
+      "セイ"
+    ],
+    "kunyomi": [
+      "あお",
+      "あおい"
+    ],
+    "meaning": "藍色、青色",
+    "grade": "N5",
+    "related_words": [
+      "青",
+      "青い",
+      "青年"
+    ]
+  },
+  {
+    "kanji": "行",
+    "strokes": 6,
+    "onyomi": [
+      "コウ",
+      "ギョウ"
+    ],
+    "kunyomi": [
+      "いく",
+      "おこなう"
+    ],
+    "meaning": "去、實施",
+    "grade": "N5",
+    "related_words": [
+      "行く",
+      "銀行",
+      "旅行"
+    ]
+  },
+  {
+    "kanji": "来",
+    "strokes": 7,
+    "onyomi": [
+      "ライ"
+    ],
+    "kunyomi": [
+      "くる",
+      "きたる"
+    ],
+    "meaning": "來",
+    "grade": "N5",
+    "related_words": [
+      "来る",
+      "来年",
+      "来週"
+    ]
+  },
+  {
+    "kanji": "出",
+    "strokes": 5,
+    "onyomi": [
+      "シュツ"
+    ],
+    "kunyomi": [
+      "でる",
+      "だす"
+    ],
+    "meaning": "出去、拿出",
+    "grade": "N5",
+    "related_words": [
+      "出る",
+      "出す",
+      "出口"
+    ]
+  },
+  {
+    "kanji": "入",
+    "strokes": 2,
+    "onyomi": [
+      "ニュウ"
+    ],
+    "kunyomi": [
+      "はい・る",
+      "い・れる"
+    ],
+    "meaning": "進入、放入",
+    "grade": "N5",
+    "related_words": [
+      "入る",
+      "入れる",
+      "入口"
+    ]
+  },
+  {
+    "kanji": "食",
+    "strokes": 9,
+    "onyomi": [
+      "ショク"
+    ],
+    "kunyomi": [
+      "たべる"
+    ],
+    "meaning": "吃、食物",
+    "grade": "N5",
+    "related_words": [
+      "食べる",
+      "食堂",
+      "食事"
+    ]
+  },
+  {
+    "kanji": "飲",
+    "strokes": 12,
+    "onyomi": [
+      "イン"
+    ],
+    "kunyomi": [
+      "のむ"
+    ],
+    "meaning": "喝",
+    "grade": "N5",
+    "related_words": [
+      "飲む",
+      "飲み物",
+      "飲料"
+    ]
+  },
+  {
+    "kanji": "見",
+    "strokes": 7,
+    "onyomi": [
+      "ケン"
+    ],
+    "kunyomi": [
+      "みる"
+    ],
+    "meaning": "看見",
+    "grade": "N5",
+    "related_words": [
+      "見る",
+      "意見",
+      "見物"
+    ]
+  },
+  {
+    "kanji": "聞",
+    "strokes": 14,
+    "onyomi": [
+      "ブン",
+      "モン"
+    ],
+    "kunyomi": [
+      "きく"
+    ],
+    "meaning": "聽、新聞",
+    "grade": "N5",
+    "related_words": [
+      "聞く",
+      "新聞"
+    ]
+  },
+  {
+    "kanji": "書",
+    "strokes": 10,
+    "onyomi": [
+      "ショ"
+    ],
+    "kunyomi": [
+      "かく"
+    ],
+    "meaning": "書寫、書籍",
+    "grade": "N5",
+    "related_words": [
+      "書く",
+      "辞書",
+      "図書館"
+    ]
+  },
+  {
+    "kanji": "読",
+    "strokes": 14,
+    "onyomi": [
+      "ドク"
+    ],
+    "kunyomi": [
+      "よむ"
+    ],
+    "meaning": "閱讀",
+    "grade": "N5",
+    "related_words": [
+      "読む",
+      "読書"
+    ]
+  },
+  {
+    "kanji": "話",
+    "strokes": 13,
+    "onyomi": [
+      "ワ"
+    ],
+    "kunyomi": [
+      "はなす",
+      "はなし"
+    ],
+    "meaning": "說話、對話",
+    "grade": "N5",
+    "related_words": [
+      "話す",
+      "話",
+      "電話",
+      "会話"
+    ]
+  },
+  {
+    "kanji": "買",
+    "strokes": 12,
+    "onyomi": [
+      "バイ"
+    ],
+    "kunyomi": [
+      "かう"
+    ],
+    "meaning": "購買",
+    "grade": "N5",
+    "related_words": [
+      "買う",
+      "買い物"
+    ]
+  },
+  {
+    "kanji": "立",
+    "strokes": 5,
+    "onyomi": [
+      "リツ"
+    ],
+    "kunyomi": [
+      "たつ"
+    ],
+    "meaning": "站立、建立",
+    "grade": "N5",
+    "related_words": [
+      "立つ",
+      "国立"
+    ]
+  },
+  {
+    "kanji": "休",
+    "strokes": 6,
+    "onyomi": [
+      "キュウ"
+    ],
+    "kunyomi": [
+      "やすむ"
+    ],
+    "meaning": "休息",
+    "grade": "N5",
+    "related_words": [
+      "休む",
+      "休み",
+      "休日"
+    ]
+  },
+  {
+    "kanji": "校",
+    "strokes": 10,
+    "onyomi": [
+      "コウ"
+    ],
+    "kunyomi": [],
+    "meaning": "學校",
+    "grade": "N5",
+    "related_words": [
+      "学校",
+      "高校",
+      "小学校"
+    ]
+  },
+  {
+    "kanji": "先",
+    "strokes": 6,
+    "onyomi": [
+      "セン"
+    ],
+    "kunyomi": [
+      "さき"
+    ],
+    "meaning": "先前、先生",
+    "grade": "N5",
+    "related_words": [
+      "先生",
+      "先週",
+      "先月"
+    ]
+  },
+  {
+    "kanji": "生",
+    "strokes": 5,
+    "onyomi": [
+      "セイ",
+      "ショウ"
+    ],
+    "kunyomi": [
+      "いきる",
+      "うまれる",
+      "なま"
+    ],
+    "meaning": "生命、出生、學生",
+    "grade": "N5",
+    "related_words": [
+      "先生",
+      "学生",
+      "一生懸命"
+    ]
+  },
+  {
+    "kanji": "友",
+    "strokes": 4,
+    "onyomi": [
+      "ユウ"
+    ],
+    "kunyomi": [
+      "とも"
+    ],
+    "meaning": "朋友",
+    "grade": "N5",
+    "related_words": [
+      "友達",
+      "友人"
+    ]
+  },
+  {
+    "kanji": "名",
+    "strokes": 6,
+    "onyomi": [
+      "メイ",
+      "ミョウ"
+    ],
+    "kunyomi": [
+      "な"
+    ],
+    "meaning": "名字、著名",
+    "grade": "N5",
+    "related_words": [
+      "名前",
+      "有名"
+    ]
+  },
+  {
+    "kanji": "本",
+    "strokes": 5,
+    "onyomi": [
+      "ホン"
+    ],
+    "kunyomi": [
+      "もと"
+    ],
+    "meaning": "書本、根基",
+    "grade": "N5",
+    "related_words": [
+      "本",
+      "日本",
+      "山本"
+    ]
+  },
+  {
+    "kanji": "国",
+    "strokes": 8,
+    "onyomi": [
+      "コク"
+    ],
+    "kunyomi": [
+      "くに"
+    ],
+    "meaning": "國家",
+    "grade": "N5",
+    "related_words": [
+      "国",
+      "外国",
+      "中国"
+    ]
+  },
+  {
+    "kanji": "車",
+    "strokes": 7,
+    "onyomi": [
+      "シャ"
+    ],
+    "kunyomi": [
+      "くるま"
+    ],
+    "meaning": "車輛",
+    "grade": "N5",
+    "related_words": [
+      "車",
+      "電車",
+      "自動車"
+    ]
+  },
+  {
+    "kanji": "語",
+    "strokes": 14,
+    "onyomi": [
+      "ゴ"
+    ],
+    "kunyomi": [
+      "かたる"
+    ],
+    "meaning": "語言、敘述",
+    "grade": "N5",
+    "related_words": [
+      "日本語",
+      "英語",
+      "語学"
+    ]
+  },
+  {
+    "kanji": "父",
+    "strokes": 4,
+    "onyomi": [
+      "フ"
+    ],
+    "kunyomi": [
+      "ちち"
+    ],
+    "meaning": "父親",
+    "grade": "N5",
+    "related_words": [
+      "父",
+      "お父さん"
+    ]
+  },
+  {
+    "kanji": "母",
+    "strokes": 5,
+    "onyomi": [
+      "ボ"
+    ],
+    "kunyomi": [
+      "はは"
+    ],
+    "meaning": "母親",
+    "grade": "N5",
+    "related_words": [
+      "母",
+      "お母さん"
+    ]
+  },
+  {
+    "kanji": "毎",
+    "strokes": 6,
+    "onyomi": [
+      "マイ"
+    ],
+    "kunyomi": [],
+    "meaning": "每、常常",
+    "grade": "N5",
+    "related_words": [
+      "毎日",
+      "毎週",
+      "毎月",
+      "毎年"
+    ]
+  },
+  {
+    "kanji": "黒",
+    "strokes": 11,
+    "onyomi": [
+      "コク"
+    ],
+    "kunyomi": [
+      "くろ"
+    ],
+    "meaning": "黑色",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "痛",
+    "strokes": 12,
+    "onyomi": [
+      "ツウ"
+    ],
+    "kunyomi": [
+      "いた"
+    ],
+    "meaning": "痛、疼痛",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "寒",
+    "strokes": 12,
+    "onyomi": [
+      "カン"
+    ],
+    "kunyomi": [
+      "さむ"
+    ],
+    "meaning": "冷、寒冷",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "暑",
+    "strokes": 12,
+    "onyomi": [
+      "ショ"
+    ],
+    "kunyomi": [
+      "あつ"
+    ],
+    "meaning": "熱、酷暑",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "涼",
+    "strokes": 11,
+    "onyomi": [
+      "リョウ"
+    ],
+    "kunyomi": [
+      "すず"
+    ],
+    "meaning": "涼、涼爽",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "暖",
+    "strokes": 13,
+    "onyomi": [
+      "ダン"
+    ],
+    "kunyomi": [
+      "あたた"
+    ],
+    "meaning": "溫暖",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "冷",
+    "strokes": 7,
+    "onyomi": [
+      "レイ"
+    ],
+    "kunyomi": [
+      "つめ",
+      "ひ",
+      "さ"
+    ],
+    "meaning": "冷、冷淡",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "熱",
+    "strokes": 15,
+    "onyomi": [
+      "ネツ"
+    ],
+    "kunyomi": [
+      "あつ"
+    ],
+    "meaning": "熱、發燒、熱情",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "仕",
+    "strokes": 5,
+    "onyomi": [
+      "シ",
+      "ジ"
+    ],
+    "kunyomi": [
+      "つか"
+    ],
+    "meaning": "服侍、做事",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "事",
+    "strokes": 8,
+    "onyomi": [
+      "ジ",
+      "ズ"
+    ],
+    "kunyomi": [
+      "こと"
+    ],
+    "meaning": "事情、事件",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "会",
+    "strokes": 6,
+    "onyomi": [
+      "カイ",
+      "エ"
+    ],
+    "kunyomi": [
+      "やしろ"
+    ],
+    "meaning": "見面、聚會、公司",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "員",
+    "strokes": 10,
+    "onyomi": [
+      "イン"
+    ],
+    "kunyomi": [
+      "みせ"
+    ],
+    "meaning": "成員、職員",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "服",
+    "strokes": 8,
+    "onyomi": [
+      "フク"
+    ],
+    "kunyomi": [
+      "かみ"
+    ],
+    "meaning": "衣服、服從",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "道",
+    "strokes": 12,
+    "onyomi": [
+      "ドウ",
+      "トウ"
+    ],
+    "kunyomi": [
+      "みち"
+    ],
+    "meaning": "路、道路、道理",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "駅",
+    "strokes": 14,
+    "onyomi": [
+      "エキ"
+    ],
+    "kunyomi": [
+      "やまい",
+      "や"
+    ],
+    "meaning": "車站",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "院",
+    "strokes": 10,
+    "onyomi": [
+      "イン"
+    ],
+    "kunyomi": [
+      "むろ"
+    ],
+    "meaning": "院、機構",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "場",
+    "strokes": 12,
+    "onyomi": [
+      "ジョウ"
+    ],
+    "kunyomi": [
+      "ところ"
+    ],
+    "meaning": "場所、場地",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "部",
+    "strokes": 11,
+    "onyomi": [
+      "オク"
+    ],
+    "kunyomi": [
+      "にわ"
+    ],
+    "meaning": "部分、部門",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "池",
+    "strokes": 6,
+    "onyomi": [
+      "トウ"
+    ],
+    "kunyomi": [
+      "しま"
+    ],
+    "meaning": "池塘",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "森",
+    "strokes": 12,
+    "onyomi": [
+      "シン"
+    ],
+    "kunyomi": [
+      "もり"
+    ],
+    "meaning": "森林",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "林",
+    "strokes": 8,
+    "onyomi": [
+      "リン"
+    ],
+    "kunyomi": [
+      "はやし"
+    ],
+    "meaning": "樹林",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "春",
+    "strokes": 9,
+    "onyomi": [
+      "シュン"
+    ],
+    "kunyomi": [
+      "はる"
+    ],
+    "meaning": "春天",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "夏",
+    "strokes": 10,
+    "onyomi": [
+      "カ",
+      "ゲ"
+    ],
+    "kunyomi": [
+      "なつ"
+    ],
+    "meaning": "夏天",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "秋",
+    "strokes": 9,
+    "onyomi": [
+      "シュウ"
+    ],
+    "kunyomi": [
+      "あき"
+    ],
+    "meaning": "秋天",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "冬",
+    "strokes": 5,
+    "onyomi": [
+      "トウ"
+    ],
+    "kunyomi": [
+      "ふゆ"
+    ],
+    "meaning": "冬天",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "早",
+    "strokes": 6,
+    "onyomi": [
+      "ソウ",
+      "サッ"
+    ],
+    "kunyomi": [
+      "はや"
+    ],
+    "meaning": "早、迅速、提早",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "遅",
+    "strokes": 12,
+    "onyomi": [
+      "ソク"
+    ],
+    "kunyomi": [
+      "はや"
+    ],
+    "meaning": "遲、緩慢、遲到",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "強",
+    "strokes": 11,
+    "onyomi": [
+      "キョウ",
+      "ゴウ"
+    ],
+    "kunyomi": [
+      "つよ",
+      "し"
+    ],
+    "meaning": "強、堅強、強迫",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "弱",
+    "strokes": 10,
+    "onyomi": [
+      "ジャク"
+    ],
+    "kunyomi": [
+      "よわ"
+    ],
+    "meaning": "弱、脆弱",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "軽",
+    "strokes": 12,
+    "onyomi": [
+      "ケイ"
+    ],
+    "kunyomi": [
+      "かる",
+      "かろ"
+    ],
+    "meaning": "輕、輕鬆",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "重",
+    "strokes": 9,
+    "onyomi": [
+      "ジュウ",
+      "チョウ"
+    ],
+    "kunyomi": [
+      "おも",
+      "かさ",
+      "え"
+    ],
+    "meaning": "重、重要、重複",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "暗",
+    "strokes": 13,
+    "onyomi": [
+      "アン"
+    ],
+    "kunyomi": [
+      "くら"
+    ],
+    "meaning": "暗、黑暗、陰沉",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "明",
+    "strokes": 8,
+    "onyomi": [
+      "メイ",
+      "ミョウ"
+    ],
+    "kunyomi": [
+      "あか",
+      "あ",
+      "あき"
+    ],
+    "meaning": "明亮、清楚、明天",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "美",
+    "strokes": 9,
+    "onyomi": [
+      "ビ",
+      "ミ"
+    ],
+    "kunyomi": [
+      "うつく"
+    ],
+    "meaning": "美、美麗",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "若",
+    "strokes": 8,
+    "onyomi": [
+      "ジャク",
+      "ニャク"
+    ],
+    "kunyomi": [
+      "わか",
+      "も"
+    ],
+    "meaning": "年輕、若是",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "老",
+    "strokes": 6,
+    "onyomi": [
+      "ロウ"
+    ],
+    "kunyomi": [
+      "お",
+      "ふ"
+    ],
+    "meaning": "老、年長",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "違",
+    "strokes": 13,
+    "onyomi": [
+      "ドウ"
+    ],
+    "kunyomi": [
+      "おな"
+    ],
+    "meaning": "不同、錯、違反",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "始",
+    "strokes": 8,
+    "onyomi": [
+      "シュウ"
+    ],
+    "kunyomi": [
+      "はし"
+    ],
+    "meaning": "開始",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "借",
+    "strokes": 10,
+    "onyomi": [
+      "シャク"
+    ],
+    "kunyomi": [],
+    "meaning": "借（入）、借來",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "貸",
+    "strokes": 12,
+    "onyomi": [
+      "タイ"
+    ],
+    "kunyomi": [
+      "かえ"
+    ],
+    "meaning": "借（出）、出借",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "渡",
+    "strokes": 12,
+    "onyomi": [
+      "シン"
+    ],
+    "kunyomi": [
+      "うご"
+    ],
+    "meaning": "渡過、交付",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "止",
+    "strokes": 4,
+    "onyomi": [
+      "カイ"
+    ],
+    "kunyomi": [
+      "あ",
+      "ひら"
+    ],
+    "meaning": "停止、停下",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "閉",
+    "strokes": 11,
+    "onyomi": [
+      "ヘイ"
+    ],
+    "kunyomi": [
+      "し",
+      "と"
+    ],
+    "meaning": "關閉、結束",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "着",
+    "strokes": 12,
+    "onyomi": [
+      "チャク"
+    ],
+    "kunyomi": [
+      "き",
+      "つ"
+    ],
+    "meaning": "穿、到達",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "思",
+    "strokes": 9,
+    "onyomi": [
+      "コウ"
+    ],
+    "kunyomi": [
+      "かんが"
+    ],
+    "meaning": "想、認為",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "知",
+    "strokes": 8,
+    "onyomi": [
+      "シン"
+    ],
+    "kunyomi": [
+      "わす"
+    ],
+    "meaning": "知道、認識",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "笑",
+    "strokes": 10,
+    "onyomi": [
+      "ショウ"
+    ],
+    "kunyomi": [
+      "わら",
+      "え"
+    ],
+    "meaning": "笑",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "泣",
+    "strokes": 8,
+    "onyomi": [
+      "キュウ"
+    ],
+    "kunyomi": [
+      "おこ",
+      "いか"
+    ],
+    "meaning": "哭、流淚",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "喜",
+    "strokes": 12,
+    "onyomi": [],
+    "kunyomi": [],
+    "meaning": "高興、喜悅",
+    "grade": "N4",
+    "related_words": []
+  },
+  {
+    "kanji": "低",
+    "strokes": 7,
+    "onyomi": [
+      "テイ"
+    ],
+    "kunyomi": [
+      "ひく"
+    ],
+    "meaning": "低、矮",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "短",
+    "strokes": 12,
+    "onyomi": [
+      "タン"
+    ],
+    "kunyomi": [
+      "みじか"
+    ],
+    "meaning": "短",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "海",
+    "strokes": 9,
+    "onyomi": [
+      "カイ"
+    ],
+    "kunyomi": [
+      "うみ"
+    ],
+    "meaning": "海、海洋",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "空",
+    "strokes": 8,
+    "onyomi": [
+      "クウ"
+    ],
+    "kunyomi": [
+      "そら",
+      "あ",
+      "から"
+    ],
+    "meaning": "天空、空的",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "雪",
+    "strokes": 11,
+    "onyomi": [
+      "セツ"
+    ],
+    "kunyomi": [
+      "ゆき"
+    ],
+    "meaning": "雪",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "学",
+    "strokes": 8,
+    "onyomi": [
+      "ガク"
+    ],
+    "kunyomi": [
+      "まな"
+    ],
+    "meaning": "學習、學問",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "家",
+    "strokes": 10,
+    "onyomi": [
+      "カ",
+      "ケ"
+    ],
+    "kunyomi": [
+      "いえ",
+      "うち"
+    ],
+    "meaning": "家、家庭",
+    "grade": "N5",
+    "related_words": []
+  },
+  {
+    "kanji": "週",
+    "strokes": 11,
+    "onyomi": [
+      "シュウ"
+    ],
+    "kunyomi": [],
+    "meaning": "週、星期",
+    "grade": "N5",
+    "related_words": []
+  }
 ]

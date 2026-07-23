@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日文漢字學習</title>
+  <title>言の道 Kotoba-dō｜每日日語單字修行</title>
   <style>
     /* 基礎 layout 樣式 */
     body {
@@ -21,6 +21,48 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1976d2;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    /* 頁籤選單 */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #1976d2;
+      border-bottom-color: #1976d2;
+    }
+
+    .tab-btn:hover {
+      color: #1976d2;
     }
 
     /* 控制列 */
@@ -49,6 +91,65 @@
       color: #fff;
     }
 
+    .btn-group button:hover {
+      background: #f0f7ff;
+    }
+
+    .btn-group button.active:hover {
+      background: #1565c0;
+    }
+
+    /* 單字卡片網格 */
+    .word-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .word-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      background: #fafafa;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+
+    .word-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    .word-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 2px solid #1976d2;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .word-main {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .word-romaji {
+      font-size: 0.85rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .word-info p {
+      margin: 4px 0;
+      font-size: 0.95rem;
+    }
+
+    .word-meaning {
+      color: #d32f2f;
+      font-weight: 500;
+    }
+
     /* 漢字卡片網格 */
     .kanji-grid {
       display: grid;
@@ -62,6 +163,11 @@
       padding: 16px;
       background: #fafafa;
       box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+
+    .kanji-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
     }
 
     .kanji-header {
@@ -88,6 +194,17 @@
     .kanji-info p {
       margin: 4px 0;
       font-size: 0.95rem;
+    }
+
+    .kanji-grade {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-top: 8px;
     }
 
     .mnemonic-box {
@@ -129,6 +246,12 @@
       margin: 10px 0;
     }
 
+    .quiz-question {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
     .options-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -143,10 +266,27 @@
       font-size: 1rem;
       border-radius: 8px;
       cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .option-btn:hover {
+    .option-btn:hover:not(:disabled) {
       background: #e3f2fd;
+      border-color: #1976d2;
+    }
+
+    .option-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .option-btn.correct {
+      background: #c8e6c9;
+      border-color: #2e7d32;
+    }
+
+    .option-btn.incorrect {
+      background: #ffcdd2;
+      border-color: #c62828;
     }
 
     .primary-btn {
@@ -158,185 +298,379 @@
       border-radius: 6px;
       font-size: 1rem;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .primary-btn:hover {
+      background: #1b5e20;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>日文漢字學習系統</h1>
+    <h1>言の道 Kotoba-dō</h1>
+    <p class="subtitle">每日日語單字修行</p>
 
-    <!-- 控制選單 -->
-    <div class="controls-bar">
-      <div class="btn-group">
-        <button class="level-btn active" data-level="N5">N5 漢字</button>
-        <button class="level-btn" data-level="N4">N4 漢字</button>
+    <!-- 頁籤選單 -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="words-tab">單字</button>
+      <button class="tab-btn" data-tab="kanji-tab">漢字</button>
+    </div>
+
+    <!-- 單字頁籤 -->
+    <div id="words-tab" class="tab-content active">
+      <div class="controls-bar">
+        <div class="btn-group">
+          <button class="mode-btn active" data-mode="overview">單字總覽</button>
+          <button class="mode-btn" data-mode="quiz">單字測驗</button>
+        </div>
       </div>
 
-      <div class="btn-group">
-        <button class="mode-btn active" data-mode="overview">漢字總覽</button>
-        <button class="mode-btn" data-mode="quiz">漢字測驗</button>
+      <!-- 單字總覽 -->
+      <div id="words-overview-view">
+        <div id="word-grid" class="word-grid"></div>
+      </div>
+
+      <!-- 單字測驗 -->
+      <div id="words-quiz-view" style="display: none;">
+        <div class="quiz-card">
+          <div class="quiz-header">
+            <span id="words-quiz-progress">題目 1 / 20</span>
+            <span id="words-quiz-score">得分: 0</span>
+          </div>
+
+          <div class="quiz-target" id="words-quiz-target">私</div>
+          <p class="quiz-question">請選擇正確的意思：</p>
+
+          <div id="words-quiz-options" class="options-grid"></div>
+
+          <button id="words-next-btn" class="primary-btn" style="display: none;">下一題</button>
+        </div>
       </div>
     </div>
 
-    <!-- 1. 總覽區域 -->
-    <div id="overview-view">
-      <div id="kanji-grid" class="kanji-grid"></div>
-    </div>
-
-    <!-- 2. 測驗區域 -->
-    <div id="quiz-view" style="display: none;">
-      <div class="quiz-card">
-        <div class="quiz-header">
-          <span id="quiz-progress">題目 1 / 20</span>
-          <span id="quiz-score">得分: 0</span>
+    <!-- 漢字頁籤 -->
+    <div id="kanji-tab" class="tab-content">
+      <div class="controls-bar">
+        <div class="btn-group">
+          <button class="level-btn active" data-level="N5">N5 漢字</button>
+          <button class="level-btn" data-level="N4">N4 漢字</button>
         </div>
 
-        <div class="quiz-target" id="quiz-kanji">一</div>
-        <p>請選擇正確的意思或讀音：</p>
+        <div class="btn-group">
+          <button class="mode-btn active" data-mode="overview">漢字總覽</button>
+          <button class="mode-btn" data-mode="quiz">漢字測驗</button>
+        </div>
+      </div>
 
-        <div id="quiz-options" class="options-grid"></div>
+      <!-- 漢字總覽 -->
+      <div id="kanji-overview-view">
+        <div id="kanji-grid" class="kanji-grid"></div>
+      </div>
 
-        <button id="next-btn" class="primary-btn" style="display: none;">下一題</button>
+      <!-- 漢字測驗 -->
+      <div id="kanji-quiz-view" style="display: none;">
+        <div class="quiz-card">
+          <div class="quiz-header">
+            <span id="kanji-quiz-progress">題目 1 / 20</span>
+            <span id="kanji-quiz-score">得分: 0</span>
+          </div>
+
+          <div class="quiz-target" id="kanji-quiz-target">一</div>
+          <p class="quiz-question">請選擇正確的意思或讀音：</p>
+
+          <div id="kanji-quiz-options" class="options-grid"></div>
+
+          <button id="kanji-next-btn" class="primary-btn" style="display: none;">下一題</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
+    let wordsData = [];
     let kanjiData = { N5: [], N4: [] };
-    let currentLevel = 'N5';
+    let currentTab = 'words-tab';
+    let currentKanjiLevel = 'N5';
     let currentMode = 'overview';
-    let quizState = { questions: [], currentIndex: 0, score: 0 };
+    let quizState = { questions: [], currentIndex: 0, score: 0, correctId: null };
 
     // 載入 JSON 資料
     async function init() {
       try {
-        const res = await fetch('./kanji.json');
-        kanjiData = await res.json();
-        renderOverview();
+        // 載入單字資料
+        const wordsRes = await fetch('./data/words.json');
+        wordsData = await wordsRes.json();
+
+        // 載入漢字資料
+        const kanjiRes = await fetch('./data/kanji.json');
+        const allKanji = await kanjiRes.json();
+        
+        // 按等級分組漢字
+        kanjiData.N5 = allKanji.filter(k => k.grade === 'N5');
+        kanjiData.N4 = allKanji.filter(k => k.grade === 'N4');
+
+        console.log(`載入 ${wordsData.length} 個單字，N5 ${kanjiData.N5.length} 個漢字，N4 ${kanjiData.N4.length} 個漢字`);
+        
+        renderWordsOverview();
       } catch (err) {
-        console.error('無法載入 kanji.json:', err);
+        console.error('無法載入資料:', err);
       }
     }
 
-    // 渲染總覽卡片
-    function renderOverview() {
-      const grid = document.getElementById('kanji-grid');
-      const items = kanjiData[currentLevel] || [];
-
-      grid.innerHTML = items.map(item => `
-        <div class="kanji-card">
-          <div class="kanji-header">
-            <span class="kanji-main">${item.kanji}</span>
-            <span class="kanji-meta">${item.strokes}畫 | 部首: ${item.radical}</span>
+    // ===== 單字相關函數 =====
+    function renderWordsOverview() {
+      const grid = document.getElementById('word-grid');
+      grid.innerHTML = wordsData.slice(0, 50).map(item => `
+        <div class="word-card">
+          <div class="word-header">
+            <span class="word-main">${item.kanji || item.kana}</span>
           </div>
-          <div class="kanji-info">
-            <p><strong>音讀：</strong>${item.onyomi || '-'}</p>
-            <p><strong>訓讀：</strong>${item.kunyomi || '-'}</p>
-            <p><strong>意思：</strong>${item.meaning}</p>
+          <div class="word-info">
+            <p><strong>假名：</strong>${item.kana}</p>
+            <p><strong>羅馬拼音：</strong>${item.romaji}</p>
+            <p class="word-meaning"><strong>意思：</strong>${item.meaning}</p>
+            ${item.category ? `<p><strong>分類：</strong>${item.category}</p>` : ''}
           </div>
-          ${item.mnemonic ? `<div class="mnemonic-box">💡 記憶法：${item.mnemonic}</div>` : ''}
-          ${item.examples ? `
+          ${item.examples && item.examples.length > 0 ? `
             <div class="kanji-examples">
-              <strong>熟語：</strong>
-              ${item.examples.slice(0, 3).map(e => `${e.word}(${e.reading})`).join('、')}
+              <strong>例句：</strong>${item.examples[0].jp}
             </div>
           ` : ''}
         </div>
       `).join('');
     }
 
-    // 開始測驗
-    function startQuiz() {
-      const pool = [...(kanjiData[currentLevel] || [])];
+    function startWordsQuiz() {
+      const pool = [...wordsData];
       if (!pool.length) return;
 
-      quizState.questions = pool.sort(() => Math.random() - 0.5);
+      quizState.questions = pool.sort(() => Math.random() - 0.5).slice(0, 20);
       quizState.currentIndex = 0;
       quizState.score = 0;
-      showQuestion();
+      showWordsQuestion();
     }
 
-    // 顯示題目
-    function showQuestion() {
+    function showWordsQuestion() {
       const { questions, currentIndex, score } = quizState;
-      document.getElementById('next-btn').style.display = 'none';
+      document.getElementById('words-next-btn').style.display = 'none';
 
       if (currentIndex >= questions.length) {
         alert(`測驗結束！您的總分為：${score} / ${questions.length}`);
-        startQuiz();
+        startWordsQuiz();
         return;
       }
 
       const q = questions[currentIndex];
-      document.getElementById('quiz-progress').textContent = `題目 ${currentIndex + 1} / ${questions.length}`;
-      document.getElementById('quiz-score').textContent = `得分: ${score}`;
-      document.getElementById('quiz-kanji').textContent = q.kanji;
+      document.getElementById('words-quiz-progress').textContent = `題目 ${currentIndex + 1} / ${questions.length}`;
+      document.getElementById('words-quiz-score').textContent = `得分: ${score}`;
+      document.getElementById('words-quiz-target').textContent = q.kanji || q.kana;
 
       // 產生 4 個選項
-      const pool = kanjiData[currentLevel];
       let options = [q];
-      while (options.length < Math.min(4, pool.length)) {
-        const rand = pool[Math.floor(Math.random() * pool.length)];
-        if (!options.some(o => o.id === rand.id)) options.push(rand);
+      while (options.length < Math.min(4, wordsData.length)) {
+        const rand = wordsData[Math.floor(Math.random() * wordsData.length)];
+        if (!options.some(o => o.meaning === rand.meaning)) options.push(rand);
       }
       options.sort(() => Math.random() - 0.5);
 
-      const optionsBox = document.getElementById('quiz-options');
+      quizState.correctId = q.meaning;
+      const optionsBox = document.getElementById('words-quiz-options');
       optionsBox.innerHTML = options.map(opt => `
-        <button class="option-btn" onclick="checkAnswer('${opt.id}', '${q.id}')">
+        <button class="option-btn" onclick="checkWordsAnswer('${opt.meaning}')">
           ${opt.meaning}
         </button>
       `).join('');
     }
 
-    // 檢查答案
-    function checkAnswer(selectedId, correctId) {
-      document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-      if (selectedId === correctId) {
+    function checkWordsAnswer(selectedMeaning) {
+      document.querySelectorAll('#words-quiz-options .option-btn').forEach(btn => btn.disabled = true);
+      if (selectedMeaning === quizState.correctId) {
         quizState.score++;
+        event.target.classList.add('correct');
+      } else {
+        event.target.classList.add('incorrect');
+        document.querySelectorAll('#words-quiz-options .option-btn').forEach(btn => {
+          if (btn.textContent === quizState.correctId) btn.classList.add('correct');
+        });
       }
-      document.getElementById('quiz-score').textContent = `得分: ${quizState.score}`;
-      document.getElementById('next-btn').style.display = 'inline-block';
+      document.getElementById('words-quiz-score').textContent = `得分: ${quizState.score}`;
+      document.getElementById('words-next-btn').style.display = 'inline-block';
     }
 
-    // 切換等級 (N5 / N4)
-    document.querySelectorAll('.level-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentLevel = e.target.dataset.level;
+    // ===== 漢字相關函數 =====
+    function renderKanjiOverview() {
+      const grid = document.getElementById('kanji-grid');
+      const items = kanjiData[currentKanjiLevel] || [];
 
-        if (currentMode === 'overview') renderOverview();
-        else startQuiz();
+      grid.innerHTML = items.map(item => `
+        <div class="kanji-card">
+          <div class="kanji-header">
+            <span class="kanji-main">${item.kanji}</span>
+            <span class="kanji-meta">${item.strokes}畫</span>
+          </div>
+          <div class="kanji-info">
+            <p><strong>音讀：</strong>${Array.isArray(item.onyomi) ? item.onyomi.join('、') : item.onyomi || '-'}</p>
+            <p><strong>訓讀：</strong>${Array.isArray(item.kunyomi) ? item.kunyomi.join('、') : item.kunyomi || '-'}</p>
+            <p><strong>意思：</strong>${item.meaning}</p>
+            <span class="kanji-grade">${item.grade}</span>
+          </div>
+          ${item.related_words && item.related_words.length > 0 ? `
+            <div class="kanji-examples">
+              <strong>熟語：</strong>${item.related_words.slice(0, 3).join('、')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function startKanjiQuiz() {
+      const pool = [...(kanjiData[currentKanjiLevel] || [])];
+      if (!pool.length) return;
+
+      quizState.questions = pool.sort(() => Math.random() - 0.5);
+      quizState.currentIndex = 0;
+      quizState.score = 0;
+      showKanjiQuestion();
+    }
+
+    function showKanjiQuestion() {
+      const { questions, currentIndex, score } = quizState;
+      document.getElementById('kanji-next-btn').style.display = 'none';
+
+      if (currentIndex >= questions.length) {
+        alert(`測驗結束！您的總分為：${score} / ${questions.length}`);
+        startKanjiQuiz();
+        return;
+      }
+
+      const q = questions[currentIndex];
+      document.getElementById('kanji-quiz-progress').textContent = `題目 ${currentIndex + 1} / ${questions.length}`;
+      document.getElementById('kanji-quiz-score').textContent = `得分: ${score}`;
+      document.getElementById('kanji-quiz-target').textContent = q.kanji;
+
+      // 產生 4 個選項
+      const pool = kanjiData[currentKanjiLevel];
+      let options = [q];
+      while (options.length < Math.min(4, pool.length)) {
+        const rand = pool[Math.floor(Math.random() * pool.length)];
+        if (!options.some(o => o.kanji === rand.kanji)) options.push(rand);
+      }
+      options.sort(() => Math.random() - 0.5);
+
+      quizState.correctId = q.kanji;
+      const optionsBox = document.getElementById('kanji-quiz-options');
+      optionsBox.innerHTML = options.map(opt => `
+        <button class="option-btn" onclick="checkKanjiAnswer('${opt.kanji}')">
+          ${opt.meaning}
+        </button>
+      `).join('');
+    }
+
+    function checkKanjiAnswer(selectedKanji) {
+      document.querySelectorAll('#kanji-quiz-options .option-btn').forEach(btn => btn.disabled = true);
+      if (selectedKanji === quizState.correctId) {
+        quizState.score++;
+        event.target.classList.add('correct');
+      } else {
+        event.target.classList.add('incorrect');
+        document.querySelectorAll('#kanji-quiz-options .option-btn').forEach(btn => {
+          const pool = kanjiData[currentKanjiLevel];
+          const correctItem = pool.find(k => k.kanji === quizState.correctId);
+          if (correctItem && btn.textContent === correctItem.meaning) btn.classList.add('correct');
+        });
+      }
+      document.getElementById('kanji-quiz-score').textContent = `得分: ${quizState.score}`;
+      document.getElementById('kanji-next-btn').style.display = 'inline-block';
+    }
+
+    // ===== 事件監聽 =====
+    
+    // 頁籤切換
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        const tab = e.target.dataset.tab;
+        document.getElementById(tab).classList.add('active');
+        currentTab = tab;
       });
     });
 
-    // 切換模式 (總覽 / 測驗)
-    document.querySelectorAll('.mode-btn').forEach(btn => {
+    // 單字模式切換
+    document.querySelectorAll('#words-tab .mode-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#words-tab .mode-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         currentMode = e.target.dataset.mode;
 
-        const overviewEl = document.getElementById('overview-view');
-        const quizEl = document.getElementById('quiz-view');
+        const overviewEl = document.getElementById('words-overview-view');
+        const quizEl = document.getElementById('words-quiz-view');
 
         if (currentMode === 'overview') {
           overviewEl.style.display = 'block';
           quizEl.style.display = 'none';
-          renderOverview();
+          renderWordsOverview();
         } else {
           overviewEl.style.display = 'none';
           quizEl.style.display = 'block';
-          startQuiz();
+          startWordsQuiz();
         }
       });
     });
 
-    document.getElementById('next-btn').addEventListener('click', () => {
+    // 漢字等級切換
+    document.querySelectorAll('#kanji-tab .level-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('#kanji-tab .level-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentKanjiLevel = e.target.dataset.level;
+
+        if (currentMode === 'overview') renderKanjiOverview();
+        else startKanjiQuiz();
+      });
+    });
+
+    // 漢字模式切換
+    document.querySelectorAll('#kanji-tab .mode-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('#kanji-tab .mode-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentMode = e.target.dataset.mode;
+
+        const overviewEl = document.getElementById('kanji-overview-view');
+        const quizEl = document.getElementById('kanji-quiz-view');
+
+        if (currentMode === 'overview') {
+          overviewEl.style.display = 'block';
+          quizEl.style.display = 'none';
+          renderKanjiOverview();
+        } else {
+          overviewEl.style.display = 'none';
+          quizEl.style.display = 'block';
+          startKanjiQuiz();
+        }
+      });
+    });
+
+    document.getElementById('words-next-btn').addEventListener('click', () => {
       quizState.currentIndex++;
-      showQuestion();
+      showWordsQuestion();
+    });
+
+    document.getElementById('kanji-next-btn').addEventListener('click', () => {
+      quizState.currentIndex++;
+      showKanjiQuestion();
     });
 
     // 頁面初次載入
