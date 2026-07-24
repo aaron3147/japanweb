@@ -134,6 +134,20 @@ function buildKanaData(kanaJson) {
   KANA_ALL = KANA_CATEGORIES.reduce((acc, c) => acc.concat(c.data), []);
 }
 
+let KANJI_CATEGORIES = [];
+let KANJI_ALL = [];
+
+function buildKanjiData(kanjiJson) {
+  const entries = kanjiJson.map(k => ({ kanji: k[0], reading: k[1], meaning: k[2], level: k[3] }));
+  const n5 = entries.filter(e => e.level === "N5");
+  const n4 = entries.filter(e => e.level === "N4");
+  KANJI_CATEGORIES = [
+    { id: "n5", label: "N5 漢字總覽", short: "N5", data: n5 },
+    { id: "n4", label: "N4 漢字總覽", short: "N4", data: n4 },
+  ];
+  KANJI_ALL = entries;
+}
+
 
 /* ------------------- 傳統五十音圖表資料（含平假名字源漢字） ------------------- */
 function gr(kana, kata, romaji, origin) { return { kana, kata, romaji, origin }; }
@@ -214,6 +228,19 @@ function buildKanaOptions(item, pool) {
   return options;
 }
 
+function buildKanjiOptions(item, pool) {
+  const distinctOthers = [];
+  const seenMeaning = new Set([item.meaning]);
+  for (const p of shuffleArr(pool)) {
+    if (seenMeaning.has(p.meaning)) continue;
+    seenMeaning.add(p.meaning);
+    distinctOthers.push(p.meaning);
+    if (distinctOthers.length >= 3) break;
+  }
+  const options = shuffleArr([item.meaning, ...distinctOthers]);
+  return options;
+}
+
 function todayStr() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -226,7 +253,6 @@ function daysBetween(a, b) {
 function App() {
   const [ready, setReady] = useState(false);
   const [cards, setCards] = useState({});          // id -> {box, due, seen, correctStreak}
-  const [dailyGoal, setDailyGoal] = useState(10);
   const [streak, setStreak] = useState(0);
   const [lastActiveDate, setLastActiveDate] = useState(null);
   const [learnerEmail, setLearnerEmail] = useState("");
@@ -250,8 +276,19 @@ function App() {
   const [kanaScore, setKanaScore] = useState(0);
   const [kanaWrong, setKanaWrong] = useState([]);
   const [kanaStats, setKanaStats] = useState({}); // kana -> {romaji, attempts, correct, wrong}
+  const [kanjiStats, setKanjiStats] = useState({}); // kanji -> {reading, meaning, attempts, correct, wrong, streak}
 
-  /* ---------- load persisted state + app data (words/kana JSON) ---------- */
+  /* ---------- kanji quiz state ---------- */
+  const [kanjiCategory, setKanjiCategory] = useState(null);
+  const [kanjiQueue, setKanjiQueue] = useState([]);
+  const [kanjiPool, setKanjiPool] = useState([]);
+  const [kanjiIdx, setKanjiIdx] = useState(0);
+  const [kanjiOptionsArr, setKanjiOptionsArr] = useState([]);
+  const [kanjiAnswersArr, setKanjiAnswersArr] = useState([]);
+  const [kanjiScore, setKanjiScore] = useState(0);
+  const [kanjiWrong, setKanjiWrong] = useState([]);
+
+  /* ---------- load persisted state + app data (words/kana/kanji JSON) ---------- */
   useEffect(() => {
     (async () => {
       // app data lives in separate JSON files (./data/*.json) instead of being
@@ -259,41 +296,44 @@ function App() {
       // matter how large the vocab database grows, and updating vocabulary is
       // just a matter of editing/replacing a JSON file.
       try {
-        const [wordsRes, glossaryRes, kanaRes] = await Promise.all([
+        const [wordsRes, glossaryRes, kanaRes, kanjiRes] = await Promise.all([
           fetch("./data/words.json"),
           fetch("./data/glossary.json"),
           fetch("./data/kana.json"),
+          fetch("./data/kanji.json"),
         ]);
-        if (!wordsRes.ok || !glossaryRes.ok || !kanaRes.ok) {
+        if (!wordsRes.ok || !glossaryRes.ok || !kanaRes.ok || !kanjiRes.ok) {
           throw new Error("資料檔案下載失敗（HTTP 錯誤）");
         }
-        const [wordsJson, glossaryJson, kanaJson] = await Promise.all([
-          wordsRes.json(), glossaryRes.json(), kanaRes.json(),
+        const [wordsJson, glossaryJson, kanaJson, kanjiJson] = await Promise.all([
+          wordsRes.json(), glossaryRes.json(), kanaRes.json(), kanjiRes.json(),
         ]);
         buildWordsData(wordsJson, glossaryJson);
         buildKanaData(kanaJson);
+        buildKanjiData(kanjiJson);
       } catch (e) {
         setDataError(e && e.message ? e.message : String(e));
         return; // don't flip to ready — show the data-error screen instead
       }
 
       try {
-        const [c, settings, l, ks] = await Promise.all([
+        const [c, settings, l, ks, kjs] = await Promise.all([
           safeGet("srs-cards"),
           safeGet("settings"),
           safeGet("daily-log"),
           safeGet("kana-stats"),
+          safeGet("kanji-stats"),
         ]);
         if (c) setCards(JSON.parse(c.value));
         if (settings) {
           const s = JSON.parse(settings.value);
-          setDailyGoal(s.dailyGoal ?? 10);
           setStreak(s.streak ?? 0);
           setLastActiveDate(s.lastActiveDate ?? null);
           setLearnerEmail(s.learnerEmail ?? "");
         }
         if (l) setLog(JSON.parse(l.value));
         if (ks) setKanaStats(JSON.parse(ks.value));
+        if (kjs) setKanjiStats(JSON.parse(kjs.value));
       } catch (e) {
         // no prior data — fresh start
       } finally {
@@ -320,22 +360,18 @@ function App() {
     setKanaStats(next);
     try { await window.storage.set("kana-stats", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
   }
+  async function persistKanjiStats(next) {
+    setKanjiStats(next);
+    try { await window.storage.set("kanji-stats", JSON.stringify(next), false); } catch (e) { setError("儲存失敗，請稍後再試"); }
+  }
   async function saveLearnerEmail(email) {
     setLearnerEmail(email);
-    await persistSettings({ dailyGoal, streak, lastActiveDate, learnerEmail: email });
+    await persistSettings({ streak, lastActiveDate, learnerEmail: email });
   }
 
 
-  /* ---------- derived: due reviews + new words available today ---------- */
+  /* ---------- derived: learning progress ---------- */
   const today = todayStr();
-  const dueCards = useMemo(() => {
-    return WORDS.filter(w => {
-      const c = cards[w.id];
-      return c && !c.mastered && c.due <= today;
-    });
-  }, [cards, today]);
-
-  const unseenWords = useMemo(() => WORDS.filter(w => !cards[w.id]), [cards]);
   const masteredCount = useMemo(() => Object.values(cards).filter(c => c.box >= 6).length, [cards]);
   const learnedCount = Object.keys(cards).length;
 
@@ -384,27 +420,6 @@ function App() {
     }), { touched: 0, total: 0, attempts: 0, correct: 0, wrong: 0 });
     return { perCategory, totals };
   }, [kanaStats]);
-
-  function buildSession() {
-    // priority: due reviews first, then fill remaining slots with new words up to dailyGoal
-    const due = dueCards.slice();
-    const remainingSlots = Math.max(0, dailyGoal - 0); // reviews don't count against new-word cap; new words capped separately
-    const newBatch = unseenWords.slice(0, dailyGoal);
-    const queue = [...due, ...newBatch];
-    if (queue.length === 0) return [];
-    return queue;
-  }
-
-  function startSession() {
-    const q = buildSession();
-    if (q.length === 0) { setView("dashboard"); return; }
-    setSessionQueue(q);
-    setSessionIdx(0);
-    setFlipped(false);
-    setSessionAnswers(new Array(q.length).fill(null));
-    setSessionStats({ correct: 0, total: 0, newCount: 0 });
-    setView("session");
-  }
 
   function startCategorySession(categoryId) {
     const catWords = WORDS.filter(w => w.category === categoryId);
@@ -466,7 +481,7 @@ function App() {
       const newStreak = lastActiveDate === yesterdayStr() ? streak + 1 : 1;
       setStreak(newStreak);
       setLastActiveDate(today);
-      await persistSettings({ dailyGoal, streak: newStreak, lastActiveDate: today, learnerEmail });
+      await persistSettings({ streak: newStreak, lastActiveDate: today, learnerEmail });
     }
   }
 
@@ -498,10 +513,6 @@ function App() {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
 
-  async function changeGoal(n) {
-    setDailyGoal(n);
-    await persistSettings({ dailyGoal: n, streak, lastActiveDate, learnerEmail });
-  }
 
   /* ---------- kana quiz handlers ---------- */
   function startKanaQuiz(category, distractorPool) {
@@ -588,6 +599,81 @@ function App() {
     setView("kana-result");
   }
 
+  /* ---------- kanji quiz handlers ---------- */
+  function startKanjiQuiz(category, distractorPool) {
+    const pool = distractorPool || category.data;
+    const queue = shuffleArr(category.data);
+    setKanjiCategory(category);
+    setKanjiPool(pool);
+    setKanjiQueue(queue);
+    setKanjiIdx(0);
+    const opts = new Array(queue.length).fill(null);
+    opts[0] = buildKanjiOptions(queue[0], pool);
+    setKanjiOptionsArr(opts);
+    setKanjiAnswersArr(new Array(queue.length).fill(null));
+    setKanjiScore(0);
+    setKanjiWrong([]);
+    setView("kanji-quiz");
+  }
+
+  function answerKanji(choice) {
+    if (kanjiAnswersArr[kanjiIdx] !== null && kanjiAnswersArr[kanjiIdx] !== undefined) return;
+    const current = kanjiQueue[kanjiIdx];
+    const correct = choice === current.meaning;
+    setKanjiAnswersArr(arr => {
+      const next = arr.slice();
+      next[kanjiIdx] = choice;
+      return next;
+    });
+    if (correct) {
+      setKanjiScore(s => s + 1);
+    } else {
+      setKanjiWrong(w => [...w, current]);
+    }
+
+    const prevStat = kanjiStats[current.kanji] || { reading: current.reading, meaning: current.meaning, attempts: 0, correct: 0, wrong: 0, streak: 0 };
+    const nextStats = {
+      ...kanjiStats,
+      [current.kanji]: {
+        reading: current.reading,
+        meaning: current.meaning,
+        attempts: prevStat.attempts + 1,
+        correct: prevStat.correct + (correct ? 1 : 0),
+        wrong: prevStat.wrong + (correct ? 0 : 1),
+        streak: correct ? (prevStat.streak || 0) + 1 : 0,
+      },
+    };
+    persistKanjiStats(nextStats);
+  }
+
+  function goToKanji(newIdx) {
+    setKanjiOptionsArr(arr => {
+      if (arr[newIdx]) return arr;
+      const next = arr.slice();
+      next[newIdx] = buildKanjiOptions(kanjiQueue[newIdx], kanjiPool);
+      return next;
+    });
+    setKanjiIdx(newIdx);
+  }
+
+  function prevKanji() {
+    if (kanjiIdx === 0) return;
+    goToKanji(kanjiIdx - 1);
+  }
+
+  function nextKanji() {
+    const nextIdx = kanjiIdx + 1;
+    if (nextIdx >= kanjiQueue.length) {
+      setView("kanji-result");
+      return;
+    }
+    goToKanji(nextIdx);
+  }
+
+  function endKanjiQuiz() {
+    setView("kanji-result");
+  }
+
   if (dataError) {
     return (
       <div style={styles.loadingScreen}>
@@ -622,14 +708,9 @@ function App() {
       <main style={styles.main} className="km-main">
         {view === "dashboard" && (
           <Dashboard
-            dailyGoal={dailyGoal}
-            changeGoal={changeGoal}
-            dueCount={dueCards.length}
-            newAvailable={Math.min(dailyGoal, unseenWords.length)}
             learnedCount={learnedCount}
             masteredCount={masteredCount}
             totalWords={WORDS.length}
-            startSession={startSession}
             onPracticeCategory={startCategorySession}
             streak={streak}
             cards={cards}
@@ -705,6 +786,35 @@ function App() {
             onBack={() => setView("kana-menu")}
           />
         )}
+        {view === "kanji-menu" && (
+          <KanjiMenu onStart={startKanjiQuiz} />
+        )}
+        {view === "kanji-quiz" && kanjiQueue[kanjiIdx] && (
+          <KanjiQuizView
+            category={kanjiCategory}
+            item={kanjiQueue[kanjiIdx]}
+            index={kanjiIdx}
+            total={kanjiQueue.length}
+            options={kanjiOptionsArr[kanjiIdx] || []}
+            selected={kanjiAnswersArr[kanjiIdx]}
+            score={kanjiScore}
+            onAnswer={answerKanji}
+            onNext={nextKanji}
+            onPrev={prevKanji}
+            canGoPrev={kanjiIdx > 0}
+            onQuit={endKanjiQuiz}
+          />
+        )}
+        {view === "kanji-result" && (
+          <KanjiResultView
+            category={kanjiCategory}
+            score={kanjiScore}
+            total={kanjiAnswersArr.filter(a => a !== null && a !== undefined).length}
+            wrong={kanjiWrong}
+            onRetry={() => startKanjiQuiz(kanjiCategory)}
+            onBack={() => setView("kanji-menu")}
+          />
+        )}
       </main>
     </div>
   );
@@ -729,6 +839,7 @@ function Header({ streak, view, setView }) {
         <nav style={styles.nav}>
           <button style={navBtn(view === "dashboard")} onClick={() => setView("dashboard")}>今日</button>
           <button style={navBtn(view.startsWith("kana"))} onClick={() => setView("kana-menu")}>50音</button>
+          <button style={navBtn(view.startsWith("kanji"))} onClick={() => setView("kanji-menu")}>漢字</button>
           <button style={navBtn(view === "stats")} onClick={() => setView("stats")}>紀錄</button>
         </nav>
       </div>
@@ -752,8 +863,7 @@ function navBtn(active) {
   };
 }
 
-function Dashboard({ dailyGoal, changeGoal, dueCount, newAvailable, learnedCount, masteredCount, totalWords, startSession, onPracticeCategory, streak, cards }) {
-  const totalToday = dueCount + newAvailable;
+function Dashboard({ learnedCount, masteredCount, totalWords, onPracticeCategory, streak, cards }) {
   const progressPct = Math.min(100, Math.round((masteredCount / totalWords) * 100));
   const [expanded, setExpanded] = useState(null);
 
@@ -769,38 +879,6 @@ function Dashboard({ dailyGoal, changeGoal, dueCount, newAvailable, learnedCount
 
   return (
     <div style={styles.dashboardWrap}>
-      <section style={styles.heroCard}>
-        <div style={styles.sealLarge}>本</div>
-        <div style={{ flex: 1 }}>
-          <div style={styles.heroLabel}>今日課題 · TODAY'S SESSION</div>
-          <div style={styles.heroCount}>{totalToday} <span style={styles.heroCountUnit}>個單字</span></div>
-          <div style={styles.heroBreakdown}>
-            {dueCount > 0 && <span>複習 {dueCount} 個　</span>}
-            {newAvailable > 0 && <span>新單字 {newAvailable} 個</span>}
-            {totalToday === 0 && <span>今日份已全部完成，明天再來！</span>}
-          </div>
-          <button
-            style={{ ...styles.ctaButton, opacity: totalToday === 0 ? 0.45 : 1, cursor: totalToday === 0 ? "default" : "pointer" }}
-            onClick={totalToday > 0 ? startSession : undefined}
-            disabled={totalToday === 0}
-          >
-            {totalToday === 0 ? "今日已完成" : "開始修行"}
-          </button>
-        </div>
-      </section>
-
-      <section style={styles.goalCard}>
-        <div style={styles.sectionLabel}>每日新單字量</div>
-        <div style={styles.goalOptions}>
-          {[5, 10, 15].map(n => (
-            <button key={n} onClick={() => changeGoal(n)} style={goalBtn(dailyGoal === n)}>
-              {n} 個
-            </button>
-          ))}
-        </div>
-        <p style={styles.goalNote}>依 N5 常用詞彙庫排序自動出題，並以間隔重複複習已學單字。</p>
-      </section>
-
       <section style={styles.statGrid}>
         <StatTile label="已學單字" value={learnedCount} unit={`/ ${totalWords}`} />
         <StatTile label="已精通" value={masteredCount} unit="個" />
@@ -876,20 +954,6 @@ function vocabCellStyle(box) {
   return {};
 }
 
-function goalBtn(active) {
-  return {
-    flex: 1,
-    padding: "16px 0",
-    borderRadius: 14,
-    border: active ? "2px solid #BC4A3C" : "1px solid #1F3A5F33",
-    background: active ? "#BC4A3C14" : "#FFFFFF",
-    color: active ? "#BC4A3C" : "#1F3A5F",
-    fontFamily: "'Shippori Mincho', serif",
-    fontSize: 24,
-    fontWeight: 600,
-    cursor: "pointer",
-  };
-}
 
 function StatTile({ label, value, unit }) {
   return (
@@ -1356,6 +1420,116 @@ function KanaResultView({ category, score, total, wrong, onRetry, onBack }) {
   );
 }
 
+function KanjiMenu({ onStart }) {
+  return (
+    <div style={styles.kanaMenuWrap}>
+      <section style={styles.heroCard}>
+        <div style={styles.sealLarge}>漢</div>
+        <div style={{ flex: 1 }}>
+          <div style={styles.heroLabel}>漢字測驗 · KANJI DRILL</div>
+          <div style={{ ...styles.heroCount, fontSize: 30 }}>選一個級別開始</div>
+          <div style={styles.heroBreakdown}>N5、N4 各自獨立測驗，看到漢字選出正確的意思。</div>
+        </div>
+      </section>
+
+      <div style={styles.kanaGrid} className="km-kana-grid">
+        {KANJI_CATEGORIES.map(c => (
+          <button key={c.id} style={styles.kanaCard} onClick={() => onStart(c)}>
+            <div style={styles.kanaCardLabel}>{c.short}</div>
+            <div style={styles.kanaCardCount}>{c.data.length} 字</div>
+          </button>
+        ))}
+      </div>
+
+      <button
+        style={styles.ctaButton}
+        onClick={() => onStart({ id: "all", label: "綜合測驗", short: "綜合測驗", data: KANJI_ALL })}
+      >
+        綜合測驗（全部 {KANJI_ALL.length} 字）
+      </button>
+    </div>
+  );
+}
+
+function KanjiQuizView({ category, item, index, total, options, selected, score, onAnswer, onNext, onPrev, canGoPrev, onQuit }) {
+  const answered = selected !== null && selected !== undefined;
+  return (
+    <div style={styles.sessionWrap}>
+      <div style={styles.sessionProgress}>
+        <div style={styles.sessionProgressTrack}>
+          <div style={{ ...styles.sessionProgressFill, width: `${(index / total) * 100}%` }} />
+        </div>
+        <div style={styles.sessionNavRow}>
+          <button style={{ ...styles.navArrowBtn, opacity: canGoPrev ? 1 : 0.3 }} onClick={onPrev} disabled={!canGoPrev}>
+            ← 上一個
+          </button>
+          <div style={styles.sessionProgressText}>{category.label}　{index + 1} / {total}　· 答對 {score}</div>
+          <button style={styles.quitBtn} onClick={onQuit}>結束</button>
+        </div>
+      </div>
+
+      <div style={styles.kanjiBigCard}>
+        <div style={styles.kanjiBigChar}>{item.kanji}</div>
+        {answered && <div style={styles.kanjiReading}>{item.reading}</div>}
+      </div>
+
+      <div style={styles.kanaOptionsGrid}>
+        {options.map(opt => {
+          let bg = styles.kanaOptionBtn;
+          if (answered) {
+            if (opt === item.meaning) bg = { ...styles.kanaOptionBtn, ...styles.kanaOptionCorrect };
+            else if (opt === selected) bg = { ...styles.kanaOptionBtn, ...styles.kanaOptionWrong };
+            else bg = { ...styles.kanaOptionBtn, opacity: 0.5 };
+          }
+          return (
+            <button key={opt} style={{ ...bg, fontSize: 15 }} onClick={() => onAnswer(opt)} disabled={answered}>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      {answered && (
+        <button style={styles.ctaButton} onClick={onNext}>
+          {index + 1 >= total ? "查看結果" : "下一題"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function KanjiResultView({ category, score, total, wrong, onRetry, onBack }) {
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  return (
+    <div style={styles.doneWrap}>
+      <div style={styles.sealLarge}>結</div>
+      <h2 style={styles.doneTitle}>{category.label} 完成</h2>
+      <p style={styles.doneSub}>答對 {score} / {total}</p>
+      <div style={styles.doneStatsRow}>
+        <StatTile label="正確率" value={pct} unit="%" />
+        <StatTile label="答錯數" value={wrong.length} unit="個" />
+      </div>
+      {wrong.length > 0 && (
+        <div style={styles.wrongListBox}>
+          <div style={styles.sectionLabel}>本次測驗過、需要加強的字</div>
+          <div style={styles.wrongGrid}>
+            {wrong.map((w, i) => (
+              <div key={i} style={styles.wrongItem}>
+                <span style={styles.wrongKana}>{w.kanji}</span>
+                <span style={styles.wrongRomaji}>{w.reading}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 12, width: "100%", maxWidth: 380 }}>
+        <button style={{ ...styles.answerBtn, ...styles.answerBtnNo }} onClick={onBack}>回選單</button>
+        <button style={{ ...styles.answerBtn, ...styles.answerBtnYes }} onClick={onRetry}>再測一次</button>
+      </div>
+    </div>
+  );
+}
+
 function FontLoader() {
   return (
     <style>{`
@@ -1483,13 +1657,7 @@ const styles = {
     borderRadius: 999, padding: "15px 32px", fontSize: 18, fontWeight: 700,
     fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 1,
   },
-  goalCard: {
-    background: "#FFFFFF", borderRadius: 18, padding: 22,
-    border: "1px solid #1F3A5F1A",
-  },
   sectionLabel: { fontSize: 14, color: "#1F3A5F99", letterSpacing: 1.5, marginBottom: 12, fontWeight: 600 },
-  goalOptions: { display: "flex", gap: 12 },
-  goalNote: { fontSize: 15, color: "#2B2B2B88", marginTop: 14, lineHeight: 1.7 },
 
   statGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 },
   statTile: {
@@ -1603,6 +1771,13 @@ const styles = {
     boxShadow: "0 8px 24px #1F3A5F22",
   },
   kanaBigChar: { fontFamily: "'Shippori Mincho', serif", fontSize: 130, color: "#F5F0E6", fontWeight: 700 },
+  kanjiBigCard: {
+    width: "100%", maxWidth: 420, minHeight: 180, borderRadius: 24,
+    background: "#1F3A5F", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 8px 24px #1F3A5F22", gap: 10, padding: "20px 0",
+  },
+  kanjiBigChar: { fontFamily: "'Shippori Mincho', serif", fontSize: 38, color: "#F5F0E6", fontWeight: 700 },
+  kanjiReading: { fontSize: 26, color: "#F5F0E699" },
   kanaOptionsGrid: {
     display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14,
     width: "100%", maxWidth: 420,
